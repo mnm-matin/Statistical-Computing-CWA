@@ -131,3 +131,6 @@ score_interval <- function(pred, y, alpha = 0.05) {
   U <- pred$upr
   U - L + 2 / alpha * (pmax(0, L - y) + pmax(0, y - U))
 }
+
+
+#Setitng up Git
