@@ -1,0 +1,69 @@
+---
+title: "CWA"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("CWA2020code.R")
+suppressPackageStartupMessages(library(tidyverse))
+theme_set(theme_bw())
+filament <- read.csv("filament.csv", stringsAsFactors = FALSE)
+```
+
+## Task 1
+
+Plot the CAD and Actual weight data, with matching colours for each material.
+
+```{r}
+
+ggplot(filament) +
+  geom_point(aes(CAD_Weight, Actual_Weight, col = Material)) +
+  scale_color_manual(values = c(Black = "black",
+                                Red = "red",
+                                Green = "green",
+                                Magenta = "magenta",
+                                "Neon pink" = "#fca3b7",
+                                "Neon blue"= "#1b03a3"))
+
+
+
+```
+
+## Task 2
+
+Unlike lab 3, the model Z function in CWA2020code.R now takes more
+arguments, allowing more exibility in how to dene the models. De-
+ne a function model estimate that takes parameters formulas, data,
+response, where formulas and data have the same interpretation as the
+input arguments to model Z, and response is a character/string variable
+naming the response (measured outcome) variable column of the data.
+
+
+The function should estimate the model by numerical optimisation, and re-
+turn a list with three named elements: theta, formulas, and Sigma theta,
+containing the information needed to call the model predict function.
+
+
+```{r}
+model_estimate <- function(formulas, data, response){
+  Z=model_Z(formulas,data)
+  opt <- optim(rep(0, 4),
+               fn = neg_log_lik,
+               Z = Z_obs, 
+               y = data_obs$actual,
+               method = "BFGS", 
+               hessian = TRUE)
+  
+  theta <- opt$par
+  Sigma_theta <- solve(opt$hessian)
+  
+  return(theta, formulas, Sigma_theta)
+  
+  }
+```
+
+## Task 3
