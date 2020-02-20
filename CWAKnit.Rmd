@@ -39,7 +39,9 @@ Unlike lab 3, the model Z function in CWA2020code.R now takes more
 arguments, allowing more exibility in how to dene the models. De-
 ne a function model estimate that takes parameters formulas, data,
 response, where formulas and data have the same interpretation as the
-input arguments to model Z, and response is a character/string variable
+input arguments to model Z, 
+
+and response is a character/string variable
 naming the response (measured outcome) variable column of the data.
 
 
@@ -50,20 +52,104 @@ containing the information needed to call the model predict function.
 
 ```{r}
 model_estimate <- function(formulas, data, response){
-  Z=model_Z(formulas,data)
+  Z_2=model_Z(formulas,data)
+  
   opt <- optim(rep(0, 4),
                fn = neg_log_lik,
-               Z = Z_obs, 
-               y = data_obs$actual,
+               Z = Z_2, 
+               y = data$Actual_Weight, #hacky
                method = "BFGS", 
                hessian = TRUE)
   
   theta <- opt$par
   Sigma_theta <- solve(opt$hessian)
   
-  return(theta, formulas, Sigma_theta)
+  formulas1=formulas
+  
+  return (list(theta = theta, formulas = formulas1, Sigma_theta=Sigma_theta))
   
   }
 ```
 
+
+```{r}
+# testing <- function (string){
+#   abc= `$`(filament , string)
+#   cdf = `$`(filament , CAD_Weight)
+#   print(abc)
+# }
+# 
+# testing(CAD_Weight)
+
+```
+
+
 ## Task 3
+
+3. Estimate a model for Actual Weight 
+with an intercept and covariate CAD_Weight for the model expectations,
+
+but only an intercept for the model (log-)variances. 
+
+
+```{r}
+data_obs <- filament[filament$Class=="obs",]
+
+formulas_3 <- list(E = ~ 1 + CAD_Weight, V = ~ 1+ CAD_Weight) #not sure about the formulas
+
+estimates_3 <- model_estimate(formulas_3, data_obs, "Actual_Weight")
+
+model_E <- model_predict(estimates_3[["theta"]], estimates_3[["formulas"]], estimates_3[["Sigma_theta"]],data_obs,type="expectation")
+
+model_V <- model_predict(estimates_3[["theta"]], estimates_3[["formulas"]], estimates_3[["Sigma_theta"]],data_obs,type="log-variance")
+
+```
+
+## Task 4
+
+Plot the test data together with the prediction intervals for the estimated
+model from task 3.
+
+```{r}
+
+data_test <- filament[filament$Class=="test",]
+
+
+x_plot <- data.frame(CAD_Weight = seq(10, 300, length=68))
+pred_plot_hat <-cbind(x_plot,model_E)
+
+ggplot() +
+  geom_ribbon(data = pred_plot_hat,
+              aes(CAD_Weight, ymin = lwr, ymax = upr),
+              alpha = 0.25) +
+  # geom_line(data = pred_plot_hat, aes(CAD_Weight, mu), col = "blue") +
+  geom_point(data = data_test, aes(CAD_Weight, Actual_Weight))
+
+
+```
+
+## Task 5
+
+5. Now estimate a model that uses an intercept and covariate CAD Weight formula for both the model expectations and (log-)variances.
+
+```{r}
+
+```
+
+## Task 6
+
+6. Plot the test data together with the prediction intervals for the two estimated models from tasks 3 and 5.
+
+```{r}
+
+```
+
+## Task 7
+
+7. Compute the Squared Error, Dawid-Sebastiani, and Interval scores ( =
+0:1) for the two estimated models. Consider the collections of pairwise
+score dierences of each score type. Do the scores agree about which
+model seems better?
+
+Hint: Write a function model scores with suitable input and output pa-
+rameters to avoid unneccessary code repeating.

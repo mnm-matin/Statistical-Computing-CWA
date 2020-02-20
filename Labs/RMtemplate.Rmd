@@ -1,0 +1,96 @@
+---
+title: Statistical Computing, Coursework A
+author: Your Name, student number
+output: pdf_document
+---
+
+```{r echo=FALSE}
+# Uncomment to include any predefined code supplied with the coursework:
+source("lab03code.R")
+```
+
+Question 1
+----
+
+
+```{r}
+obs <- sample(rep(c(TRUE, FALSE), c(0.75, 0.25) * nrow(printer_data)),
+              size = nrow(printer_data),
+              replace = FALSE)
+data_obs <- printer_data[obs, ]
+data_test <- printer_data[!obs, ]
+```
+
+```{r}
+model_Z <- function(data) {
+  Z0 <- model.matrix(~ 1 + cad, data = data)
+  list(ZE = cbind(Z0, Z0 * 0), ZV = cbind(Z0 * 0, Z0))
+}
+```
+
+```{r}
+Z_obs <- model_Z(data_obs)
+opt <- optim(rep(0, 4),
+             fn = neg_log_lik,
+             Z = Z_obs, y = data_obs$actual,
+             method = "BFGS", hessian = TRUE)
+theta_hat <- opt$par
+Sigma_theta <- solve(opt$hessian)
+
+
+## Prediction intervals:
+theta_ref <- c(0, 1, 6, 0)
+x_plot <- data.frame(cad = seq(10, 300, length=100))
+pred_plot_ref <-
+  cbind(x_plot,
+        model_predict(theta_ref, x_plot, type = "observation"))
+pred_plot_hat <-
+  cbind(x_plot,
+        model_predict(theta_hat, x_plot,
+                      Sigma_theta = Sigma_theta, type = "observation"))
+ggplot() +
+  geom_ribbon(data = pred_plot_ref,
+              aes(cad, ymin = lwr, ymax = upr),
+              alpha = 0.25, fill = "red") +
+  geom_line(data = pred_plot_ref, aes(cad, mu), col = "red") +
+  geom_ribbon(data = pred_plot_hat,
+              aes(cad, ymin = lwr, ymax = upr),
+              alpha = 0.25, fill = "blue") +
+  geom_line(data = pred_plot_hat, aes(cad, mu), col = "blue") +
+  geom_point(data = data_obs, aes(cad, actual)) +
+  geom_point(data = data_test, aes(cad, actual), col = "magenta")
+```
+
+```{r}
+## Test scores:
+obs_pred_ref <- model_predict(theta_ref, data_obs,
+                              type = "observation")
+obs_pred_hat <- model_predict(theta_hat, data_obs,
+                              Sigma_theta = Sigma_theta,
+                              type = "observation")
+test_pred_ref <- model_predict(theta_ref, data_test,
+                               type = "observation")
+test_pred_hat <- model_predict(theta_hat, data_test,
+                               Sigma_theta = Sigma_theta,
+                               type = "observation")
+## SE for observed and test data
+rbind(
+  obs = c(ref = mean(score_se(obs_pred_ref, data_obs$actual)),
+          hat = mean(score_se(obs_pred_hat, data_obs$actual))),
+  test = c(ref = mean(score_se(test_pred_ref, data_test$actual)),
+           hat = mean(score_se(test_pred_hat, data_test$actual)))
+)
+## ref hat
+## obs 466.6786 426.3953
+## test 289.4991 217.8406
+## DS for observed and test data
+
+
+rbind(
+  obs = c(ref = mean(score_ds(obs_pred_ref, data_obs$actual)),
+          hat = mean(score_ds(obs_pred_hat, data_obs$actual))),
+  test = c(ref = mean(score_ds(test_pred_ref, data_test$actual)),
+           hat = mean(score_ds(test_pred_hat, data_test$actual)))
+)
+```
+

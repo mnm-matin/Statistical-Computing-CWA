@@ -1,0 +1,71 @@
+---
+title: RMarkdown demonstration
+author: Finn Lindgren
+date: 2020-01-28
+output: pdf_document
+---
+
+This is a heading
+=====
+
+```{r results='hide'}
+suppressPackageStartupMessages(library(tidyverse))
+theme_set(theme_bw())
+```
+
+RMarkdown comes in to flavours: Text documents that include specially
+marked chunks of R code (file ending `.Rmd`), and R scripts that include
+specially marked blocks of text (file ending `.R`).
+For this demonstration, we're adding blocks of code.
+
+The following is an R code "chunk". Any output from
+running the code will be typeset as well.
+
+```{r}
+cos(1)
+```
+
+The output of R code can also be included in lines of text,
+like $\sin(1)=$
+`r sin(1)`.
+Note: RMarkdown is sometimes picky about whitespace; in this example, eliminating whitespace and having the R code start on a new line turned out to be the safest option.
+
+This is a sub-heading
+-----
+
+This is some more text with a simple mathematical
+formula, $y_i = \beta_0 + x_i \beta_1 + \epsilon_i$. The
+mathematical formula syntax is essentially a subset of the powerful \LaTeX\ notation.
+Larger formulas can be "displayed", using `$$` instead of `$`. For example,
+$$
+y_i = \beta_0 + \sum_{k=1}^p X_{ik} \beta_k + \epsilon_i .
+$$
+
+A blank line gives a new paragraph.
+
+If we only want the result of a chunk of R code to be seen, we can add
+special instructions in a comment at the beginning of the code chunk.
+See [https://yihui.name/knitr/options/](https://yihui.name/knitr/options/)
+for a list of all the available options!
+
+```{r echo=FALSE}
+sin(1)
+```
+
+The `echo=FALSE` option can be useful for hiding code where we only want to show the result of a computation, and note the code itself.
+Another useful option is `eval=FALSE`,
+which can be used for chunks of code that should be shown but not run,
+perhaps to illustrate a programming error, which RMarkdown would otherwise
+complain about:
+
+```{r echo=TRUE,eval=FALSE}
+curve(cos x, 0, 1)
+```
+
+We can also include R generated figures:
+
+```{r}
+ggplot(data.frame(x = seq(1e-3, pi, length.out = 1000)) %>%
+         mutate(fun = cos(pi / x))) +
+  geom_line(aes(x, fun))
+```
