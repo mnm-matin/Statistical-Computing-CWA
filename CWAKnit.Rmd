@@ -52,13 +52,15 @@ containing the information needed to call the model predict function.
 
 ```{r}
 model_estimate <- function(formulas, data, response){
+  
   Z_2=model_Z(formulas,data)
   
-  opt <- optim(rep(0, 4),
+  opt <- optim(rep(0, ncol(Z_2[["ZE"]])),
                fn = neg_log_lik,
                Z = Z_2, 
-               y = data$Actual_Weight, #hacky
-               method = "BFGS", 
+               y = data[[response]],
+               method = "BFGS",
+               control = list(maxit = 5000),
                hessian = TRUE)
   
   theta <- opt$par
@@ -80,6 +82,22 @@ model_estimate <- function(formulas, data, response){
 # }
 # 
 # testing(CAD_Weight)
+# 
+# data_obs_t <- filament[filament$Class=="obs",]
+# 
+# formulas_t <- list(E = ~ 1 + CAD_Weight, V = ~ 1) #not sure about the formulas
+# 
+# 
+# Z_t=model_Z(formulas_t,data_obs_t)
+#   opt <- optim(rep(0, ncol(Z_2[["ZE"]])),
+#                fn = neg_log_lik,
+#                Z = Z_t, 
+#                y = data_obs_t$Actual_Weight, #hacky
+#                method = "BFGS", 
+#                hessian = TRUE)
+#   
+#   theta_t <- opt$par
+#   Sigma_theta_t <- solve(opt$hessian)
 
 ```
 
@@ -95,14 +113,17 @@ but only an intercept for the model (log-)variances.
 ```{r}
 data_obs <- filament[filament$Class=="obs",]
 
-formulas_3 <- list(E = ~ 1 + CAD_Weight, V = ~ 1+ CAD_Weight) #not sure about the formulas
+formulas_3 <- list(E = ~ 1 + CAD_Weight, V = ~ 1)
 
 estimates_3 <- model_estimate(formulas_3, data_obs, "Actual_Weight")
 
-model_E <- model_predict(estimates_3[["theta"]], estimates_3[["formulas"]], estimates_3[["Sigma_theta"]],data_obs,type="expectation")
+estimates_3
 
-model_V <- model_predict(estimates_3[["theta"]], estimates_3[["formulas"]], estimates_3[["Sigma_theta"]],data_obs,type="log-variance")
+```
 
+```{r}
+rbind(range(diag(estimates_3$Sigma_theta)))
+#correct answer
 ```
 
 ## Task 4
@@ -110,31 +131,47 @@ model_V <- model_predict(estimates_3[["theta"]], estimates_3[["formulas"]], esti
 Plot the test data together with the prediction intervals for the estimated
 model from task 3.
 
+
 ```{r}
 
 data_test <- filament[filament$Class=="test",]
 
 
-x_plot <- data.frame(CAD_Weight = seq(10, 300, length=68))
-pred_plot_hat <-cbind(x_plot,model_E)
+model3 <- model_predict(estimates_3[["theta"]], estimates_3[["formulas"]], estimates_3[["Sigma_theta"]],data_test,type="observation")
+
+
+pred_plot_4 <- cbind(data_test, model3)
 
 ggplot() +
-  geom_ribbon(data = pred_plot_hat,
+  geom_ribbon(data = pred_plot_4,
               aes(CAD_Weight, ymin = lwr, ymax = upr),
-              alpha = 0.25) +
-  # geom_line(data = pred_plot_hat, aes(CAD_Weight, mu), col = "blue") +
-  geom_point(data = data_test, aes(CAD_Weight, Actual_Weight))
-
+              alpha = 0.25, fill = "blue") +
+  geom_line(data = pred_plot_4, aes(CAD_Weight, mu), col = "blue") +
+  #geom_point(data = data_obs, aes(CAD_Weight, Actual_Weight)) +
+  geom_point(data = data_test, aes(CAD_Weight, Actual_Weight), col = "magenta")
 
 ```
+
 
 ## Task 5
 
 5. Now estimate a model that uses an intercept and covariate CAD Weight formula for both the model expectations and (log-)variances.
 
 ```{r}
+formulas_5 <- list(E = ~ 1 + CAD_Weight, V = ~ 1+ CAD_Weight)
+
+estimates_5 <- model_estimate(formulas_5, data_obs, "Actual_Weight")
+
+estimates_5
 
 ```
+
+
+```{r}
+rbind(range(diag(estimates_5$Sigma_theta)))
+#correct answer
+```
+
 
 ## Task 6
 
@@ -142,14 +179,140 @@ ggplot() +
 
 ```{r}
 
+model5 <- model_predict(estimates_5[["theta"]], estimates_5[["formulas"]], estimates_5[["Sigma_theta"]],data_test,type="observation")
+
+
+pred_plot_6 <- cbind(data_test, model5)
+
+ggplot() +
+  geom_ribbon(data = pred_plot_4,
+              aes(CAD_Weight, ymin = lwr, ymax = upr),
+              alpha = 0.25, fill = "blue") +
+  geom_ribbon(data = pred_plot_6,
+              aes(CAD_Weight, ymin = lwr, ymax = upr),
+              alpha = 0.25, fill = "red") +
+  geom_line(data = pred_plot_4, aes(CAD_Weight, mu), col = "blue") +
+  geom_line(data = pred_plot_6, aes(CAD_Weight, mu), col = "red") +
+  #geom_point(data = data_obs, aes(CAD_Weight, Actual_Weight)) +
+  geom_point(data = data_test, aes(CAD_Weight, Actual_Weight), col = "black")
+
+
 ```
 
 ## Task 7
 
-7. Compute the Squared Error, Dawid-Sebastiani, and Interval scores ( =
-0:1) for the two estimated models. Consider the collections of pairwise
-score dierences of each score type. Do the scores agree about which
+7. Compute the Squared Error, Dawid-Sebastiani, and Interval scores (alpha =
+0.1) for the two estimated models. Consider the collections of pairwise
+score differences of each score type. Do the scores agree about which
 model seems better?
 
 Hint: Write a function model scores with suitable input and output pa-
 rameters to avoid unneccessary code repeating.
+
+```{r}
+model_scores <- function (modelQ, data, response, alpha){
+  
+  
+return(data.frame(
+  SES=c((score_se(modelQ, data[[response]]))),
+  DSS=c((score_ds(modelQ, data[[response]]))),
+  IS=c((score_interval(modelQ, data[[response]], alpha = alpha)))
+))  
+  
+}
+
+
+
+Score_3 = model_scores(model3, data_test, 'Actual_Weight', 0.1)
+Score_5 = model_scores(model5, data_test, 'Actual_Weight', 0.1)
+
+S5_S3 = Score_5 - Score_3
+
+
+plot(ecdf(S5_S3[["SES"]]),
+     xlim=c(-8,5),
+      xlab="Score Difference (Score 5 - Score 3)",
+      ylab="ecdf",
+      main="Empirical CDF of Difference between Scores of Model 5 and Model 3",
+      col="seashell2")
+lines(ecdf(S5_S3[["DSS"]]),
+     col="khaki")
+lines(ecdf(S5_S3[["IS"]]),
+     col="purple")
+
+legend('bottomright', 
+       legend=c("Squared Error","Dawid-Sebastiani","Interval Score"),
+       col=c("seashell2","khaki","purple"),
+       pch=15)
+
+
+```
+
+The ecdf is largely skewed towards the negative end which means that Model 5 performs significantly better than Model 3.
+
+
+
+## Task 8
+
+The printer user wonders if the CAD system is equally (or bad) at pre-
+dicting the weight of all the different materials. Estimate a model with
+material dependent CAD Weight coefficients for the expectation part of the
+model, and compare the prediction scores with those from task 7.
+
+Hint: Find out what the interaction syntax A:B does in a model formula,
+when A is a factor and B is a continuous variable.
+
+```{r}
+
+formulas_8 <- list(E = ~ 1 + CAD_Weight:Material, V = ~ 1+ CAD_Weight)
+
+estimates_8 <- model_estimate(formulas_8, data_obs, "Actual_Weight")
+
+estimates_8
+```
+```{r}
+model8 <- model_predict(estimates_8[["theta"]], estimates_8[["formulas"]], estimates_8[["Sigma_theta"]],data_test,type="observation")
+
+
+Score_8 = model_scores(model8, data_test, 'Actual_Weight', 0.1)
+
+S8_S3 = Score_8 - Score_3
+
+plot(ecdf(S8_S3[["SES"]]),
+     xlim=c(-8,5),
+      xlab="Score Difference (Score 8 - Score 3)",
+      ylab="ecdf",
+      main="Empirical CDF of Difference between Scores of Model 8 and Model 3",
+      col="seashell2")
+lines(ecdf(S8_S3[["DSS"]]),
+     col="khaki")
+lines(ecdf(S8_S3[["IS"]]),
+     col="purple")
+
+legend('bottomright', 
+       legend=c("Squared Error","Dawid-Sebastiani","Interval Score"),
+       col=c("seashell2","khaki","purple"),
+       pch=15)
+
+```
+
+```{r}
+rbind(range(diag(estimates_8$Sigma_theta)))
+#correct answer
+```
+
+
+## Task 9
+
+```{r}
+
+```
+
+## Task 10
+
+```{r}
+
+```
+
+
+
