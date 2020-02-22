@@ -164,7 +164,6 @@ ggplot() +
               alpha = 0.25, fill = "red") +
   geom_line(data = pred_plot_4, aes(CAD_Weight, mu), col = "blue") +
   geom_line(data = pred_plot_6, aes(CAD_Weight, mu), col = "red") +
-  #geom_point(data = data_obs, aes(CAD_Weight, Actual_Weight)) +
   geom_point(data = data_test, aes(CAD_Weight, Actual_Weight), col = "black")
 
 
@@ -277,13 +276,57 @@ rbind(range(diag(estimates_8$Sigma_theta)))
 
 ```{r}
 
-P9 = pnorm(q=1.1*data_test$CAD_Weight,mean = model3$mu,sd = model3$sigma,lower.tail = FALSE)
+Prob_3 = pnorm(q=1.1*data_test$CAD_Weight,mean = model3$mu,sd = model3$sigma,lower.tail = FALSE)
+Prob_5 = pnorm(q=1.1*data_test$CAD_Weight,mean = model5$mu,sd = model5$sigma,lower.tail = FALSE)
+Prob_8 = pnorm(q=1.1*data_test$CAD_Weight,mean = model8$mu,sd = model8$sigma,lower.tail = FALSE)
 
-y=cbind(ProbabilitiesTask9,data_test)
+Prob_CAD=cbind(Prob_3,Prob_5,Prob_8,data_test)
+
 
 ggplot() +
-  geom_point(data=y,aes(CAD_Weight,P9))
+  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_3), col = "black") +
+  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_5), col = "blue") +
+  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_8), col = "red")
   
+
+score_brier <- function (z, probF){
+  (z - probF)^2
+}
+
+# if Actual_Weight "<\>" 1.1*CAD_Weight then z=1 otherwise z=0
+indicator<- ifelse(data_test$Actual_Weight>data_test$CAD_Weight*1.1,1,0)
+
+
+BS_3=c((score_brier(indicator,Prob_3)))
+BS_5=c((score_brier(indicator,Prob_5)))
+BS_8=c((score_brier(indicator,Prob_8)))
+
+# print("Brier Scores for Model 3")
+# BS_3
+# print("Brier Scores for Model 5")
+# BS_5
+# print("Brier Scores for Model 8")
+# BS_8
+
+df.brier=data.frame("Brier Score for Model 3"=BS_3,"Brier Score for Model 5"=BS_5,"Brier Score for Model 8"=BS_8)
+
+B5_B3 = BS_5-BS_3
+B8_B3 = BS_8-BS_3
+
+
+plot(ecdf(B8_B3),
+     #xlim=c(-8,5),
+      xlab="Score Difference (Score 8 - Score 3)",
+      ylab="ecdf",
+      main="Empirical CDF of Difference between Scores of Model 8 and Model 3",
+      col="seashell2")
+lines(ecdf(B5_B3),
+     col="khaki")
+
+legend('bottomright', 
+       legend=c("Squared Error","Dawid-Sebastiani","Interval Score"),
+       col=c("seashell2","khaki","purple"),
+       pch=15)
 
 
 ```
