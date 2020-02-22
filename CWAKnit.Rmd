@@ -73,35 +73,6 @@ model_estimate <- function(formulas, data, response){
   }
 ```
 
-
-```{r}
-# testing <- function (string){
-#   abc= `$`(filament , string)
-#   cdf = `$`(filament , CAD_Weight)
-#   print(abc)
-# }
-# 
-# testing(CAD_Weight)
-# 
-# data_obs_t <- filament[filament$Class=="obs",]
-# 
-# formulas_t <- list(E = ~ 1 + CAD_Weight, V = ~ 1) #not sure about the formulas
-# 
-# 
-# Z_t=model_Z(formulas_t,data_obs_t)
-#   opt <- optim(rep(0, ncol(Z_2[["ZE"]])),
-#                fn = neg_log_lik,
-#                Z = Z_t, 
-#                y = data_obs_t$Actual_Weight, #hacky
-#                method = "BFGS", 
-#                hessian = TRUE)
-#   
-#   theta_t <- opt$par
-#   Sigma_theta_t <- solve(opt$hessian)
-
-```
-
-
 ## Task 3
 
 3. Estimate a model for Actual Weight 
@@ -147,8 +118,8 @@ ggplot() +
               aes(CAD_Weight, ymin = lwr, ymax = upr),
               alpha = 0.25, fill = "blue") +
   geom_line(data = pred_plot_4, aes(CAD_Weight, mu), col = "blue") +
-  #geom_point(data = data_obs, aes(CAD_Weight, Actual_Weight)) +
   geom_point(data = data_test, aes(CAD_Weight, Actual_Weight), col = "magenta")
+
 
 ```
 
@@ -234,15 +205,15 @@ plot(ecdf(S5_S3[["SES"]]),
       xlab="Score Difference (Score 5 - Score 3)",
       ylab="ecdf",
       main="Empirical CDF of Difference between Scores of Model 5 and Model 3",
-      col="seashell2")
+      col="black")
 lines(ecdf(S5_S3[["DSS"]]),
-     col="khaki")
+     col="blue")
 lines(ecdf(S5_S3[["IS"]]),
      col="purple")
 
 legend('bottomright', 
        legend=c("Squared Error","Dawid-Sebastiani","Interval Score"),
-       col=c("seashell2","khaki","purple"),
+       col=c("black","blue","purple"),
        pch=15)
 
 
@@ -305,6 +276,15 @@ rbind(range(diag(estimates_8$Sigma_theta)))
 ## Task 9
 
 ```{r}
+
+P9 = pnorm(q=1.1*data_test$CAD_Weight,mean = model3$mu,sd = model3$sigma,lower.tail = FALSE)
+
+y=cbind(ProbabilitiesTask9,data_test)
+
+ggplot() +
+  geom_point(data=y,aes(CAD_Weight,P9))
+  
+
 
 ```
 
