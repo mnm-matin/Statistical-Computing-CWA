@@ -284,9 +284,17 @@ Prob_CAD=cbind(Prob_3,Prob_5,Prob_8,data_test)
 
 
 ggplot() +
-  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_3), col = "black") +
-  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_5), col = "blue") +
-  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_8), col = "red")
+  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_3, col = "Model 3" )) +
+  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_5, col = "Model 5")) +
+  geom_line(data=Prob_CAD,aes(CAD_Weight,Prob_3, col = "Model 3" )) +
+  geom_line(data=Prob_CAD,aes(CAD_Weight,Prob_5, col = "Model 5")) +
+  geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_8, col = "Model 8")) +
+  #theme(legend.position="right") +
+  labs(subtitle="Event: More than 10% extra weight is needed compared with CAD_Weight", 
+       y="Probability", 
+       x="CAD_Weight", 
+       title="Probabilities for the Event for each Model", 
+       caption = "Note: Probabilities for Model 8 shown as Scatter plot only")
   
 
 score_brier <- function (z, probF){
@@ -319,15 +327,17 @@ plot(ecdf(B8_B3),
       xlab="Score Difference (Score 8 - Score 3)",
       ylab="ecdf",
       main="Empirical CDF of Difference between Scores of Model 8 and Model 3",
-      col="seashell2")
+      col="red")
 lines(ecdf(B5_B3),
-     col="khaki")
+     col="blue")
 
 legend('bottomright', 
-       legend=c("Squared Error","Dawid-Sebastiani","Interval Score"),
-       col=c("seashell2","khaki","purple"),
+       legend=c("Model 8 - Model 3","Model 5 - Model 3"),
+       col=c("red","blue"),
        pch=15)
 
+
+data.frame(Prob_3,Prob_5,Prob_8)
 
 ```
 
