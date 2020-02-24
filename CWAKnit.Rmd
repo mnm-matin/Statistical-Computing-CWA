@@ -14,72 +14,55 @@ theme_set(theme_bw())
 filament <- read.csv("filament.csv", stringsAsFactors = FALSE)
 ```
 
-## Task 1
-
-Plot the CAD and Actual weight data, with matching colours for each material.
+# Task 1: Actual Weight and CAD Weight Plot
 
 ```{r}
 
 ggplot(filament) +
   geom_point(aes(CAD_Weight, Actual_Weight, col = Material)) +
-  scale_color_manual(values = c(Black = "black",
-                                Red = "red",
-                                Green = "green",
-                                Magenta = "magenta",
-                                "Neon pink" = "#fca3b7",
-                                "Neon blue"= "#1b03a3"))
-
-
-
+  scale_color_manual(values = c("Black" = "black",
+                                "Red" = "red",
+                                "Green" = "green",
+                                "Magenta" = "magenta",
+                                "Neon pink" = "#fca3b7", #differentiate from magenta
+                                "Neon blue"= "#1b03a3")) +
+  
+  labs(subtitle="Data: filament.csv", 
+       y="Actual Weight", 
+       x="CAD Weight", 
+       title="Scatter Plot of Actual Weight vs CAD Weight", 
+       caption = "Note: Colour of points correspond to Material Colour")
 ```
 
-## Task 2
+---
 
-Unlike lab 3, the model Z function in CWA2020code.R now takes more
-arguments, allowing more exibility in how to dene the models. De-
-ne a function model estimate that takes parameters formulas, data,
-response, where formulas and data have the same interpretation as the
-input arguments to model Z, 
-
-and response is a character/string variable
-naming the response (measured outcome) variable column of the data.
-
-
-The function should estimate the model by numerical optimisation, and re-
-turn a list with three named elements: theta, formulas, and Sigma theta,
-containing the information needed to call the model predict function.
-
+# Task 2: Model Estimate Function
 
 ```{r}
 model_estimate <- function(formulas, data, response){
   
-  Z_2=model_Z(formulas,data)
+  z_data=model_Z(formulas,data)
   
-  opt <- optim(rep(0, ncol(Z_2[["ZE"]])),
+  opt <- optim(rep(0, ncol(z_data[["ZE"]])), 
                fn = neg_log_lik,
-               Z = Z_2, 
+               Z = z_data, 
                y = data[[response]],
                method = "BFGS",
-               control = list(maxit = 5000),
+               control = list(maxit = 5000), # Anouncement on Learn, Ensures Convergence
                hessian = TRUE)
   
   theta <- opt$par
   Sigma_theta <- solve(opt$hessian)
   
-  formulas1=formulas
   
-  return (list(theta = theta, formulas = formulas1, Sigma_theta=Sigma_theta))
+  return (list(theta = theta, formulas = formulas, Sigma_theta=Sigma_theta))
   
   }
 ```
 
-## Task 3
+---
 
-3. Estimate a model for Actual Weight 
-with an intercept and covariate CAD_Weight for the model expectations,
-
-but only an intercept for the model (log-)variances. 
-
+# Task 3: Estimating Model 3
 
 ```{r}
 data_obs <- filament[filament$Class=="obs",]
@@ -92,21 +75,13 @@ estimates_3
 
 ```
 
-```{r}
-rbind(range(diag(estimates_3$Sigma_theta)))
-#correct answer
-```
+---
 
-## Task 4
-
-Plot the test data together with the prediction intervals for the estimated
-model from task 3.
-
+# Task 4: Model 3 Prediction Intervals Plot
 
 ```{r}
 
 data_test <- filament[filament$Class=="test",]
-
 
 model3 <- model_predict(estimates_3[["theta"]], estimates_3[["formulas"]], estimates_3[["Sigma_theta"]],data_test,type="observation")
 
@@ -118,15 +93,18 @@ ggplot() +
               aes(CAD_Weight, ymin = lwr, ymax = upr),
               alpha = 0.25, fill = "blue") +
   geom_line(data = pred_plot_4, aes(CAD_Weight, mu), col = "blue") +
-  geom_point(data = data_test, aes(CAD_Weight, Actual_Weight), col = "magenta")
+  geom_point(data = data_test, aes(CAD_Weight, Actual_Weight), col = "red") +
+  labs(subtitle="Test Data", 
+       y="Actual Weight", 
+       x="CAD Weight", 
+       title="Prediction Interval of Model 3 with Scatter Plot of Actual Weight vs CAD Weight")
 
 
 ```
 
+---
 
-## Task 5
-
-5. Now estimate a model that uses an intercept and covariate CAD Weight formula for both the model expectations and (log-)variances.
+# Task 5: Estimating Model 5
 
 ```{r}
 formulas_5 <- list(E = ~ 1 + CAD_Weight, V = ~ 1+ CAD_Weight)
@@ -137,16 +115,9 @@ estimates_5
 
 ```
 
+---
 
-```{r}
-rbind(range(diag(estimates_5$Sigma_theta)))
-#correct answer
-```
-
-
-## Task 6
-
-6. Plot the test data together with the prediction intervals for the two estimated models from tasks 3 and 5.
+# Task 6: Model 3 & Model 5 Prediction Intervals Plot
 
 ```{r}
 
@@ -157,80 +128,75 @@ pred_plot_6 <- cbind(data_test, model5)
 
 ggplot() +
   geom_ribbon(data = pred_plot_4,
-              aes(CAD_Weight, ymin = lwr, ymax = upr),
-              alpha = 0.25, fill = "blue") +
+              aes(CAD_Weight, ymin = lwr, ymax = upr,col="Model 3",fill = "Model 3"),
+              alpha = 0.25) +
   geom_ribbon(data = pred_plot_6,
-              aes(CAD_Weight, ymin = lwr, ymax = upr),
-              alpha = 0.25, fill = "red") +
+              aes(CAD_Weight, ymin = lwr, ymax = upr, col="Model 5", fill = "Model 5"),
+              alpha = 0.25) +
   geom_line(data = pred_plot_4, aes(CAD_Weight, mu), col = "blue") +
   geom_line(data = pred_plot_6, aes(CAD_Weight, mu), col = "red") +
-  geom_point(data = data_test, aes(CAD_Weight, Actual_Weight), col = "black")
+  geom_point(data = data_test, aes(CAD_Weight, Actual_Weight), col = "black")+
+  scale_colour_manual("",values = c("Model 3" = "blue","Model 5" = "red"))+
+  scale_fill_manual("",values = c("Model 3" = "blue", "Model 5" = "red"))+
+  labs(subtitle="Test Data", 
+       y="Actual Weight", 
+       x="CAD Weight", 
+       title="Prediction Interval of Model 3 and Model 5")
 
 
 ```
 
-## Task 7
+---
 
-7. Compute the Squared Error, Dawid-Sebastiani, and Interval scores (alpha =
-0.1) for the two estimated models. Consider the collections of pairwise
-score differences of each score type. Do the scores agree about which
-model seems better?
-
-Hint: Write a function model scores with suitable input and output pa-
-rameters to avoid unneccessary code repeating.
+# Task 7: Model 3 and Model 5 Score Comparison
 
 ```{r}
 model_scores <- function (modelQ, data, response, alpha){
   
-  
 return(data.frame(
-  SES=c((score_se(modelQ, data[[response]]))),
-  DSS=c((score_ds(modelQ, data[[response]]))),
-  IS=c((score_interval(modelQ, data[[response]], alpha = alpha)))
+  SES=c((score_se(modelQ, data[[response]]))),  #Squared Error
+  DSS=c((score_ds(modelQ, data[[response]]))),  #Dawid-Sebastiani
+  IS=c((score_interval(modelQ, data[[response]], alpha = alpha))) #Interval Score
 ))  
-  
 }
-
-
 
 Score_3 = model_scores(model3, data_test, 'Actual_Weight', 0.1)
 Score_5 = model_scores(model5, data_test, 'Actual_Weight', 0.1)
 
 S5_S3 = Score_5 - Score_3
 
-
 plot(ecdf(S5_S3[["SES"]]),
-     xlim=c(-8,5),
+      xlim=c(-4,4),
       xlab="Score Difference (Score 5 - Score 3)",
-      ylab="ecdf",
-      main="Empirical CDF of Difference between Scores of Model 5 and Model 3",
-      col="black")
+      ylab="% Test Data Set",
+      main="ECDF of Difference between Scores of Model 5 and Model 3",
+      col="red",cex=0)
 lines(ecdf(S5_S3[["DSS"]]),
-     col="blue")
+     col="blue",cex=0)
 lines(ecdf(S5_S3[["IS"]]),
-     col="purple")
+     col="black",cex=0)
+abline(v=0, col="magenta")
 
 legend('bottomright', 
        legend=c("Squared Error","Dawid-Sebastiani","Interval Score"),
-       col=c("black","blue","purple"),
+       col=c("red","blue","black"),
        pch=15)
 
 
 ```
 
-The ecdf is largely skewed towards the negative end which means that Model 5 performs significantly better than Model 3.
+### Comparing Model 3 and Model 5
 
+The interval score  for Model 5 is better than Model 3 on appoximately 80% of the test data set.
+The Dawid-Sebastiani score for Model 5 is better than Model 3 on approximately 60% of the test data set.
+The Squared-Error score for Model 5 is better than Model 3 on approximately 35% of the test data set.
 
+Only the interval score and Dawid-Sebastiani score agree on Model 5 being better than Model 3.
+The Squared-Error score suggest that Model 3 is marginally better than Model 5.
 
-## Task 8
+---
 
-The printer user wonders if the CAD system is equally (or bad) at pre-
-dicting the weight of all the different materials. Estimate a model with
-material dependent CAD Weight coefficients for the expectation part of the
-model, and compare the prediction scores with those from task 7.
-
-Hint: Find out what the interaction syntax A:B does in a model formula,
-when A is a factor and B is a continuous variable.
+# Task 8
 
 ```{r}
 
@@ -247,32 +213,68 @@ model8 <- model_predict(estimates_8[["theta"]], estimates_8[["formulas"]], estim
 Score_8 = model_scores(model8, data_test, 'Actual_Weight', 0.1)
 
 S8_S3 = Score_8 - Score_3
+S8_S5 = Score_8 - Score_5
 
 plot(ecdf(S8_S3[["SES"]]),
-     xlim=c(-8,5),
+      xlim=c(-2,2),
       xlab="Score Difference (Score 8 - Score 3)",
-      ylab="ecdf",
-      main="Empirical CDF of Difference between Scores of Model 8 and Model 3",
-      col="seashell2")
+      ylab="% Test Data Set",
+      main="ECDF of Difference between Scores of Model 8 and Model 3",
+      col="red",cex=0)
 lines(ecdf(S8_S3[["DSS"]]),
-     col="khaki")
+     col="blue",cex=0)
 lines(ecdf(S8_S3[["IS"]]),
-     col="purple")
-
+     col="black",cex=0)
+abline(v=0, col="magenta")
 legend('bottomright', 
        legend=c("Squared Error","Dawid-Sebastiani","Interval Score"),
-       col=c("seashell2","khaki","purple"),
+       col=c("red","blue","black"),
        pch=15)
-
 ```
+
+
+### Comparing Model 8 and Model 3
+
+The interval score  for Model 8 is better than Model 3 on appoximately **75%** of the test data set.
+The Dawid-Sebastiani score for Model 8 is better than Model 3 on approximately **70%** of the test data set.
+The Squared-Error score for Model 8 is better than Model 3 on approximately **40%** of the test data set.
+
+Only the interval score and Dawid-Sebastiani score agree on Model 8 being better than Model 3.
+The Squared-Error score suggest that Model 3 is marginally better than Model 8.
 
 ```{r}
-rbind(range(diag(estimates_8$Sigma_theta)))
-#correct answer
+plot(ecdf(S8_S5[["SES"]]),
+      xlim=c(-2,2),
+      xlab="Score Difference (Score 8 - Score 5)",
+      ylab="% Test Data Set",
+      main="ECDF of Difference between Scores of Model 8 and Model 5",
+      col="red",cex=0)
+lines(ecdf(S8_S5[["DSS"]]),
+     col="blue",cex=0)
+lines(ecdf(S8_S5[["IS"]]),
+     col="black",cex=0)
+abline(v=0, col="magenta")
+legend('bottomright', 
+       legend=c("Squared Error","Dawid-Sebastiani","Interval Score"),
+       col=c("red","blue","black"),
+       pch=15)
 ```
 
 
-## Task 9
+### Comparing Model 8 and Model 5
+
+The interval score  for Model 8 is better than Model 5 on appoximately **80%** of the test data set.
+The Dawid-Sebastiani score for Model 8 is better than Model 5 on approximately **50%** of the test data set.
+The Squared-Error score for Model 8 is better than Model 5 on approximately **35%** of the test data set.
+
+Only the interval score agrees on Model 8 being better than Model 5.
+The Dawid-Sebastiani score dow not give a conclusive indication on which model is better.
+The Squared-Error score suggest that Model 5 is better than Model 8.
+
+
+---
+
+# Task 9
 
 ```{r}
 
@@ -282,14 +284,12 @@ Prob_8 = pnorm(q=1.1*data_test$CAD_Weight,mean = model8$mu,sd = model8$sigma,low
 
 Prob_CAD=cbind(Prob_3,Prob_5,Prob_8,data_test)
 
-
 ggplot() +
   geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_3, col = "Model 3" )) +
   geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_5, col = "Model 5")) +
   geom_line(data=Prob_CAD,aes(CAD_Weight,Prob_3, col = "Model 3" )) +
   geom_line(data=Prob_CAD,aes(CAD_Weight,Prob_5, col = "Model 5")) +
   geom_point(data=Prob_CAD,aes(CAD_Weight,Prob_8, col = "Model 8")) +
-  #theme(legend.position="right") +
   labs(subtitle="Event: More than 10% extra weight is needed compared with CAD_Weight", 
        y="Probability", 
        x="CAD_Weight", 
@@ -304,48 +304,144 @@ score_brier <- function (z, probF){
 # if Actual_Weight "<\>" 1.1*CAD_Weight then z=1 otherwise z=0
 indicator<- ifelse(data_test$Actual_Weight>data_test$CAD_Weight*1.1,1,0)
 
-
 BS_3=c((score_brier(indicator,Prob_3)))
 BS_5=c((score_brier(indicator,Prob_5)))
 BS_8=c((score_brier(indicator,Prob_8)))
-
-# print("Brier Scores for Model 3")
-# BS_3
-# print("Brier Scores for Model 5")
-# BS_5
-# print("Brier Scores for Model 8")
-# BS_8
 
 df.brier=data.frame("Brier Score for Model 3"=BS_3,"Brier Score for Model 5"=BS_5,"Brier Score for Model 8"=BS_8)
 
 B5_B3 = BS_5-BS_3
 B8_B3 = BS_8-BS_3
-
+B8_B5 = BS_8-BS_5
 
 plot(ecdf(B8_B3),
-     #xlim=c(-8,5),
+     xlim=c(-0.2,0.2),
       xlab="Score Difference (Score 8 - Score 3)",
-      ylab="ecdf",
-      main="Empirical CDF of Difference between Scores of Model 8 and Model 3",
-      col="red")
+      ylab="% Test Data Set",
+      main="ECDF of Brier Score Difference between Model 8, 5 & 3",
+      col="red",cex=0)
 lines(ecdf(B5_B3),
-     col="blue")
-
+     col="blue",cex=0)
+lines(ecdf(B8_B5),
+     col="black",cex=0)
+abline(v=0, col="magenta")
 legend('bottomright', 
-       legend=c("Model 8 - Model 3","Model 5 - Model 3"),
-       col=c("red","blue"),
+       legend=c("Model 8 - Model 3","Model 5 - Model 3","Model 8 - Model 5"),
+       col=c("red","blue","black"),
        pch=15)
 
-
-data.frame(Prob_3,Prob_5,Prob_8)
-
 ```
 
-## Task 10
+
+### Comparing Model 8, Model 5 & Model 3
+
+The Brier score  for Model 8 is better than Model 5 on appoximately **50%** of the test data set.
+The Brier score for Model 8 is better than Model 3 on approximately **45%** of the test data set.
+The Brier score for Model 5 is better than Model 3 on approximately **40%** of the test data set.
+
+The Brier score does not give a conclusive indication on which model is better.
+
+---
+
+# Task 10
 
 ```{r}
+#set.seed(pi) #for reproducability
 
+# Generating observed data
+c_5=rcauchy(5,location=2,scale=5)
+c_10=rcauchy(10,location=2,scale=5)
+c_20=rcauchy(20,location=2,scale=5)
+c_40=rcauchy(40,location=2,scale=5)
+
+# Generating test data
+c_test=rcauchy(100000,location=2,scale=5)
 ```
 
 
+```{r}
+neg_lik_cauchy <- function(theta, y) {
+  -sum(dcauchy(
+    y, 
+    location = theta[1],
+    scale = exp(theta[2])^0.5, #scaling theta
+    log = TRUE))
+}
+
+
+opt_cauchy <- function (N){
+  opt_c <- optim(c(0,1),
+              fn = neg_lik_cauchy,
+              y = N,
+              method = "BFGS",
+              control = list(maxit = 5000), # Anouncement on Learn, Ensures Convergence
+              hessian = TRUE)
+  
+  location_e <- opt_c$par[1]
+  scale_e <- opt_c$par[2]
+  
+  return (list(location_e=location_e,scale_e=scale_e, convergence=opt_c$convergence))
+}
+
+brier_cauchy <- function (N){
+  opt_c <- opt_cauchy(N)
+  #opt_c
+  
+  prob_dist_e <- pcauchy(q=0,location = opt_c$location_e, scale=opt_c$scale_e,lower.tail = TRUE)
+  prob_dist_true = pcauchy(q=0,location = 2, scale=5,lower.tail = TRUE)
+  
+  
+  indicator_e<- ifelse(c_test<0,1,0)
+  indicator_true<- ifelse(N<0,1,0)
+  
+  BS_10_e=c((score_brier(indicator_e,prob_dist_e)))
+  BS_10_true=c((score_brier(indicator_true,prob_dist_true)))
+  
+  mean_BS_10_e=mean(BS_10_e)
+  mean_BS_10_true=mean(BS_10_true)
+  
+  mean_bs_d=mean_BS_10_e - mean_BS_10_true
+
+  return(list(mean_bs_e=mean_BS_10_e, mean_bs_true=mean_BS_10_true, mean_d=mean_bs_d,opt_c=opt_c))
+}
+
+
+b_5=brier_cauchy(c_5)
+b_10=brier_cauchy(c_10)
+b_20=brier_cauchy(c_20)
+b_40=brier_cauchy(c_40)
+
+mbs_n=data.frame(cbind(mean_d=c(b_5$mean_d,b_10$mean_d,b_20$mean_d,b_40$mean_d),N=c(5,10,20,40)))
+
+ggplot()+
+  geom_line(data=mbs_n,aes(N,mean_d))+
+  geom_point(data=mbs_n,aes(N,mean_d))+
+  geom_hline(yintercept = 0, col="red")+
+  labs(y="Mean Brier Score Difference ", 
+       x="Number of Observations", 
+       title="Mean Brier Score Difference Stability")
+
+```
+
+### Stabilization of Mean Brier Score Differences
+
+The mean Brier Score difference stabilise as N increases. The difference approaches 0 as N increases.
+
+```{r}
+param_n=data.frame(cbind(opt_par_l=c(b_5$opt_c$location_e,b_10$opt_c$location_e,b_20$opt_c$location_e,b_40$opt_c$location_e),cbind(opt_par_s=c(b_5$opt_c$scale_e,b_10$opt_c$scale_e,b_20$opt_c$scale_e,b_40$opt_c$scale_e),N=c(5,10,20,40))))
+
+ggplot()+
+  geom_line(data=param_n,aes(N,opt_par_l,col="Location"))+
+  geom_line(data=param_n,aes(N,opt_par_s,col="Scale"))+
+  geom_hline(yintercept = 2, col="red")+
+  geom_hline(yintercept = 5, col="turquoise")+
+  labs(y="", 
+       x="Number of Observations", 
+       title="Location & Scale against N")
+```
+
+### Stabilization of Optimization Paramaters
+
+The optimization paramaters stabilise as N increases. 
+They approach their respective true values as N increases.
 

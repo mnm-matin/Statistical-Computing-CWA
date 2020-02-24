@@ -125,40 +125,463 @@
 \begin{document}
 \maketitle
 
-\subsection{R Markdown}\label{r-markdown}
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{source}\NormalTok{(}\StringTok{"CWA2020code.R"}\NormalTok{)}
+\KeywordTok{suppressPackageStartupMessages}\NormalTok{(}\KeywordTok{library}\NormalTok{(tidyverse))}
+\KeywordTok{theme_set}\NormalTok{(}\KeywordTok{theme_bw}\NormalTok{())}
+\NormalTok{filament <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"filament.csv"}\NormalTok{, }\DataTypeTok{stringsAsFactors =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
-This is an R Markdown document. Markdown is a simple formatting syntax
-for authoring HTML, PDF, and MS Word documents. For more details on
-using R Markdown see \url{http://rmarkdown.rstudio.com}.
-
-When you click the \textbf{Knit} button a document will be generated
-that includes both content as well as the output of any embedded R code
-chunks within the document. You can embed an R code chunk like this:
+\section{Task 1: Actual Weight and CAD Weight
+Plot}\label{task-1-actual-weight-and-cad-weight-plot}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\KeywordTok{summary}\NormalTok{(cars)}
+\KeywordTok{ggplot}\NormalTok{(filament) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\KeywordTok{aes}\NormalTok{(CAD_Weight, Actual_Weight, }\DataTypeTok{col =}\NormalTok{ Material)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_color_manual}\NormalTok{(}\DataTypeTok{values =} \KeywordTok{c}\NormalTok{(}\StringTok{"Black"}\NormalTok{ =}\StringTok{ "black"}\NormalTok{,}
+                                \StringTok{"Red"}\NormalTok{ =}\StringTok{ "red"}\NormalTok{,}
+                                \StringTok{"Green"}\NormalTok{ =}\StringTok{ "green"}\NormalTok{,}
+                                \StringTok{"Magenta"}\NormalTok{ =}\StringTok{ "magenta"}\NormalTok{,}
+                                \StringTok{"Neon pink"}\NormalTok{ =}\StringTok{ "#fca3b7"}\NormalTok{, }\CommentTok{#differentiate from magenta}
+                                \StringTok{"Neon blue"}\NormalTok{=}\StringTok{ "#1b03a3"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{subtitle=}\StringTok{"Data: filament.csv"}\NormalTok{, }
+       \DataTypeTok{y=}\StringTok{"Actual Weight"}\NormalTok{, }
+       \DataTypeTok{x=}\StringTok{"CAD Weight"}\NormalTok{, }
+       \DataTypeTok{title=}\StringTok{"Scatter Plot of Actual Weight vs CAD Weight"}\NormalTok{, }
+       \DataTypeTok{caption =} \StringTok{"Note: Colour of points correspond to Material Colour"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-2-1.pdf}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Task 2: Model Estimate
+Function}\label{task-2-model-estimate-function}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model_estimate <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(formulas, data, response)\{}
+  
+\NormalTok{  z_data=}\KeywordTok{model_Z}\NormalTok{(formulas,data)}
+  
+\NormalTok{  opt <-}\StringTok{ }\KeywordTok{optim}\NormalTok{(}\KeywordTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, }\KeywordTok{ncol}\NormalTok{(z_data[[}\StringTok{"ZE"}\NormalTok{]])), }
+               \DataTypeTok{fn =}\NormalTok{ neg_log_lik,}
+               \DataTypeTok{Z =}\NormalTok{ z_data, }
+               \DataTypeTok{y =}\NormalTok{ data[[response]],}
+               \DataTypeTok{method =} \StringTok{"BFGS"}\NormalTok{,}
+               \DataTypeTok{control =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{maxit =} \DecValTok{5000}\NormalTok{), }\CommentTok{# Anouncement on Learn, Ensures Convergence}
+               \DataTypeTok{hessian =} \OtherTok{TRUE}\NormalTok{)}
+  
+\NormalTok{  theta <-}\StringTok{ }\NormalTok{opt}\OperatorTok{$}\NormalTok{par}
+\NormalTok{  Sigma_theta <-}\StringTok{ }\KeywordTok{solve}\NormalTok{(opt}\OperatorTok{$}\NormalTok{hessian)}
+  
+  
+  \KeywordTok{return}\NormalTok{ (}\KeywordTok{list}\NormalTok{(}\DataTypeTok{theta =}\NormalTok{ theta, }\DataTypeTok{formulas =}\NormalTok{ formulas, }\DataTypeTok{Sigma_theta=}\NormalTok{Sigma_theta))}
+  
+\NormalTok{  \}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Task 3: Estimating Model 3}\label{task-3-estimating-model-3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data_obs <-}\StringTok{ }\NormalTok{filament[filament}\OperatorTok{$}\NormalTok{Class}\OperatorTok{==}\StringTok{"obs"}\NormalTok{,]}
+
+\NormalTok{formulas_}\DecValTok{3}\NormalTok{ <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{E =} \OperatorTok{~}\StringTok{ }\DecValTok{1} \OperatorTok{+}\StringTok{ }\NormalTok{CAD_Weight, }\DataTypeTok{V =} \OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{)}
+
+\NormalTok{estimates_}\DecValTok{3}\NormalTok{ <-}\StringTok{ }\KeywordTok{model_estimate}\NormalTok{(formulas_}\DecValTok{3}\NormalTok{, data_obs, }\StringTok{"Actual_Weight"}\NormalTok{)}
+
+\NormalTok{estimates_}\DecValTok{3}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
-##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00
+## $theta
+## [1] 0.3058488 1.0660628 0.6901968
+## 
+## $formulas
+## $formulas$E
+## ~1 + CAD_Weight
+## 
+## $formulas$V
+## ~1
+## 
+## 
+## $Sigma_theta
+##               [,1]          [,2]          [,3]
+## [1,]  9.026507e-02 -1.708832e-03  6.877290e-08
+## [2,] -1.708832e-03  4.791775e-05 -1.475095e-09
+## [3,]  6.877290e-08 -1.475095e-09  2.941178e-02
 \end{verbatim}
 
-\subsection{Including Plots}\label{including-plots}
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-You can also embed plots, for example:
+\section{Task 4: Model 3 Prediction Intervals
+Plot}\label{task-4-model-3-prediction-intervals-plot}
 
-\includegraphics{CWAKnit_files/figure-latex/pressure-1.pdf}
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data_test <-}\StringTok{ }\NormalTok{filament[filament}\OperatorTok{$}\NormalTok{Class}\OperatorTok{==}\StringTok{"test"}\NormalTok{,]}
 
-Note that the \texttt{echo\ =\ FALSE} parameter was added to the code
-chunk to prevent printing of the R code that generated the plot.
+\NormalTok{model3 <-}\StringTok{ }\KeywordTok{model_predict}\NormalTok{(estimates_}\DecValTok{3}\NormalTok{[[}\StringTok{"theta"}\NormalTok{]], estimates_}\DecValTok{3}\NormalTok{[[}\StringTok{"formulas"}\NormalTok{]], estimates_}\DecValTok{3}\NormalTok{[[}\StringTok{"Sigma_theta"}\NormalTok{]],data_test,}\DataTypeTok{type=}\StringTok{"observation"}\NormalTok{)}
+
+
+\NormalTok{pred_plot_}\DecValTok{4}\NormalTok{ <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(data_test, model3)}
+
+\KeywordTok{ggplot}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_ribbon}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ pred_plot_}\DecValTok{4}\NormalTok{,}
+              \KeywordTok{aes}\NormalTok{(CAD_Weight, }\DataTypeTok{ymin =}\NormalTok{ lwr, }\DataTypeTok{ymax =}\NormalTok{ upr),}
+              \DataTypeTok{alpha =} \FloatTok{0.25}\NormalTok{, }\DataTypeTok{fill =} \StringTok{"blue"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ pred_plot_}\DecValTok{4}\NormalTok{, }\KeywordTok{aes}\NormalTok{(CAD_Weight, mu), }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ data_test, }\KeywordTok{aes}\NormalTok{(CAD_Weight, Actual_Weight), }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{subtitle=}\StringTok{"Test Data"}\NormalTok{, }
+       \DataTypeTok{y=}\StringTok{"Actual Weight"}\NormalTok{, }
+       \DataTypeTok{x=}\StringTok{"CAD Weight"}\NormalTok{, }
+       \DataTypeTok{title=}\StringTok{"Prediction Interval of Model 3 with Scatter Plot of Actual Weight vs CAD Weight"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Task 5: Estimating Model 5}\label{task-5-estimating-model-5}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{formulas_}\DecValTok{5}\NormalTok{ <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{E =} \OperatorTok{~}\StringTok{ }\DecValTok{1} \OperatorTok{+}\StringTok{ }\NormalTok{CAD_Weight, }\DataTypeTok{V =} \OperatorTok{~}\StringTok{ }\DecValTok{1}\OperatorTok{+}\StringTok{ }\NormalTok{CAD_Weight)}
+
+\NormalTok{estimates_}\DecValTok{5}\NormalTok{ <-}\StringTok{ }\KeywordTok{model_estimate}\NormalTok{(formulas_}\DecValTok{5}\NormalTok{, data_obs, }\StringTok{"Actual_Weight"}\NormalTok{)}
+
+\NormalTok{estimates_}\DecValTok{5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $theta
+## [1] -0.16389778  1.08222367 -1.80995547  0.05356663
+## 
+## $formulas
+## $formulas$E
+## ~1 + CAD_Weight
+## 
+## $formulas$V
+## ~1 + CAD_Weight
+## 
+## 
+## $Sigma_theta
+##               [,1]          [,2]          [,3]          [,4]
+## [1,]  0.0237301631 -8.276727e-04 -1.111045e-03  3.112610e-05
+## [2,] -0.0008276727  4.699560e-05  6.293605e-05 -1.763996e-06
+## [3,] -0.0011110445  6.293605e-05  1.487803e-01 -3.347233e-03
+## [4,]  0.0000311261 -1.763996e-06 -3.347233e-03  9.385984e-05
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Task 6: Model 3 \& Model 5 Prediction Intervals
+Plot}\label{task-6-model-3-model-5-prediction-intervals-plot}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model5 <-}\StringTok{ }\KeywordTok{model_predict}\NormalTok{(estimates_}\DecValTok{5}\NormalTok{[[}\StringTok{"theta"}\NormalTok{]], estimates_}\DecValTok{5}\NormalTok{[[}\StringTok{"formulas"}\NormalTok{]], estimates_}\DecValTok{5}\NormalTok{[[}\StringTok{"Sigma_theta"}\NormalTok{]],data_test,}\DataTypeTok{type=}\StringTok{"observation"}\NormalTok{)}
+
+
+\NormalTok{pred_plot_}\DecValTok{6}\NormalTok{ <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(data_test, model5)}
+
+\KeywordTok{ggplot}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_ribbon}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ pred_plot_}\DecValTok{4}\NormalTok{,}
+              \KeywordTok{aes}\NormalTok{(CAD_Weight, }\DataTypeTok{ymin =}\NormalTok{ lwr, }\DataTypeTok{ymax =}\NormalTok{ upr,}\DataTypeTok{col=}\StringTok{"Model 3"}\NormalTok{,}\DataTypeTok{fill =} \StringTok{"Model 3"}\NormalTok{),}
+              \DataTypeTok{alpha =} \FloatTok{0.25}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_ribbon}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ pred_plot_}\DecValTok{6}\NormalTok{,}
+              \KeywordTok{aes}\NormalTok{(CAD_Weight, }\DataTypeTok{ymin =}\NormalTok{ lwr, }\DataTypeTok{ymax =}\NormalTok{ upr, }\DataTypeTok{col=}\StringTok{"Model 5"}\NormalTok{, }\DataTypeTok{fill =} \StringTok{"Model 5"}\NormalTok{),}
+              \DataTypeTok{alpha =} \FloatTok{0.25}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ pred_plot_}\DecValTok{4}\NormalTok{, }\KeywordTok{aes}\NormalTok{(CAD_Weight, mu), }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ pred_plot_}\DecValTok{6}\NormalTok{, }\KeywordTok{aes}\NormalTok{(CAD_Weight, mu), }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ data_test, }\KeywordTok{aes}\NormalTok{(CAD_Weight, Actual_Weight), }\DataTypeTok{col =} \StringTok{"black"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_colour_manual}\NormalTok{(}\StringTok{""}\NormalTok{,}\DataTypeTok{values =} \KeywordTok{c}\NormalTok{(}\StringTok{"Model 3"}\NormalTok{ =}\StringTok{ "blue"}\NormalTok{,}\StringTok{"Model 5"}\NormalTok{ =}\StringTok{ "red"}\NormalTok{))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_fill_manual}\NormalTok{(}\StringTok{""}\NormalTok{,}\DataTypeTok{values =} \KeywordTok{c}\NormalTok{(}\StringTok{"Model 3"}\NormalTok{ =}\StringTok{ "blue"}\NormalTok{, }\StringTok{"Model 5"}\NormalTok{ =}\StringTok{ "red"}\NormalTok{))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{subtitle=}\StringTok{"Test Data"}\NormalTok{, }
+       \DataTypeTok{y=}\StringTok{"Actual Weight"}\NormalTok{, }
+       \DataTypeTok{x=}\StringTok{"CAD Weight"}\NormalTok{, }
+       \DataTypeTok{title=}\StringTok{"Prediction Interval of Model 3 and Model 5"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Task 7: Model 3 and Model 5 Score
+Comparison}\label{task-7-model-3-and-model-5-score-comparison}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model_scores <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{ (modelQ, data, response, alpha)\{}
+  
+\KeywordTok{return}\NormalTok{(}\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{SES=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_se}\NormalTok{(modelQ, data[[response]]))),  }\CommentTok{#Squared Error}
+  \DataTypeTok{DSS=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_ds}\NormalTok{(modelQ, data[[response]]))),  }\CommentTok{#Dawid-Sebastiani}
+  \DataTypeTok{IS=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_interval}\NormalTok{(modelQ, data[[response]], }\DataTypeTok{alpha =}\NormalTok{ alpha))) }\CommentTok{#Interval Score}
+\NormalTok{))  }
+\NormalTok{\}}
+
+\NormalTok{Score_}\DecValTok{3}\NormalTok{ =}\StringTok{ }\KeywordTok{model_scores}\NormalTok{(model3, data_test, }\StringTok{'Actual_Weight'}\NormalTok{, }\FloatTok{0.1}\NormalTok{)}
+\NormalTok{Score_}\DecValTok{5}\NormalTok{ =}\StringTok{ }\KeywordTok{model_scores}\NormalTok{(model5, data_test, }\StringTok{'Actual_Weight'}\NormalTok{, }\FloatTok{0.1}\NormalTok{)}
+
+\NormalTok{S5_S3 =}\StringTok{ }\NormalTok{Score_}\DecValTok{5} \OperatorTok{-}\StringTok{ }\NormalTok{Score_}\DecValTok{3}
+
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S5_S3[[}\StringTok{"SES"}\NormalTok{]]),}
+      \DataTypeTok{xlim=}\KeywordTok{c}\NormalTok{(}\OperatorTok{-}\DecValTok{4}\NormalTok{,}\DecValTok{4}\NormalTok{),}
+      \DataTypeTok{xlab=}\StringTok{"Score Difference (Score 5 - Score 3)"}\NormalTok{,}
+      \DataTypeTok{ylab=}\StringTok{"% Test Data Set"}\NormalTok{,}
+      \DataTypeTok{main=}\StringTok{"ECDF of Difference between Scores of Model 5 and Model 3"}\NormalTok{,}
+      \DataTypeTok{col=}\StringTok{"red"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S5_S3[[}\StringTok{"DSS"}\NormalTok{]]),}
+     \DataTypeTok{col=}\StringTok{"blue"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S5_S3[[}\StringTok{"IS"}\NormalTok{]]),}
+     \DataTypeTok{col=}\StringTok{"black"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{v=}\DecValTok{0}\NormalTok{, }\DataTypeTok{col=}\StringTok{"magenta"}\NormalTok{)}
+
+\KeywordTok{legend}\NormalTok{(}\StringTok{'bottomright'}\NormalTok{, }
+       \DataTypeTok{legend=}\KeywordTok{c}\NormalTok{(}\StringTok{"Squared Error"}\NormalTok{,}\StringTok{"Dawid-Sebastiani"}\NormalTok{,}\StringTok{"Interval Score"}\NormalTok{),}
+       \DataTypeTok{col=}\KeywordTok{c}\NormalTok{(}\StringTok{"red"}\NormalTok{,}\StringTok{"blue"}\NormalTok{,}\StringTok{"black"}\NormalTok{),}
+       \DataTypeTok{pch=}\DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\subsubsection{Comparing Model 3 and Model
+5}\label{comparing-model-3-and-model-5}
+
+The interval score for Model 5 is better than Model 3 on appoximately
+80\% of the test data set. The Dawid-Sebastiani score for Model 5 is
+better than Model 3 on approximately 60\% of the test data set. The
+Squared-Error score for Model 5 is better than Model 3 on approximately
+35\% of the test data set.
+
+Only the interval score and Dawid-Sebastiani score agree on Model 5
+being better than Model 3. The Squared-Error score suggest that Model 3
+is marginally better than Model 5.
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Task 8}\label{task-8}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{formulas_}\DecValTok{8}\NormalTok{ <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{E =} \OperatorTok{~}\StringTok{ }\DecValTok{1} \OperatorTok{+}\StringTok{ }\NormalTok{CAD_Weight}\OperatorTok{:}\NormalTok{Material, }\DataTypeTok{V =} \OperatorTok{~}\StringTok{ }\DecValTok{1}\OperatorTok{+}\StringTok{ }\NormalTok{CAD_Weight)}
+
+\NormalTok{estimates_}\DecValTok{8}\NormalTok{ <-}\StringTok{ }\KeywordTok{model_estimate}\NormalTok{(formulas_}\DecValTok{8}\NormalTok{, data_obs, }\StringTok{"Actual_Weight"}\NormalTok{)}
+
+\NormalTok{estimates_}\DecValTok{8}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $theta
+## [1] -0.07467418  1.06083919  1.08529823  1.10359160  1.06565852  1.09929646
+## [7]  1.07417646 -1.89254757  0.05068071
+## 
+## $formulas
+## $formulas$E
+## ~1 + CAD_Weight:Material
+## 
+## $formulas$V
+## ~1 + CAD_Weight
+## 
+## 
+## $Sigma_theta
+##                [,1]          [,2]          [,3]          [,4]
+##  [1,]  0.0220436724 -8.933195e-04 -7.814548e-04 -5.665713e-04
+##  [2,] -0.0008933195  9.998818e-05  3.139510e-05  2.235492e-05
+##  [3,] -0.0007814548  3.139510e-05  8.027081e-05  2.023356e-05
+##  [4,] -0.0005665713  2.235492e-05  2.023356e-05  1.129322e-04
+##  [5,] -0.0009598999  3.770394e-05  3.432199e-05  2.532102e-05
+##  [6,] -0.0006035296  2.811462e-05  2.049873e-05  1.352638e-05
+##  [7,] -0.0006636840  2.687504e-05  2.353288e-05  1.706942e-05
+##  [8,]  0.0030452444 -4.922692e-04 -1.783771e-05  1.219876e-04
+##  [9,] -0.0000853920  1.380483e-05  4.908143e-07 -3.422572e-06
+##                [,5]          [,6]          [,7]          [,8]
+##  [1,] -9.598999e-04 -6.035296e-04 -6.636840e-04  3.045244e-03
+##  [2,]  3.770394e-05  2.811462e-05  2.687504e-05 -4.922692e-04
+##  [3,]  3.432199e-05  2.049873e-05  2.353288e-05 -1.783771e-05
+##  [4,]  2.532102e-05  1.352638e-05  1.706942e-05  1.219876e-04
+##  [5,]  3.070196e-04  2.235800e-05  2.892262e-05  2.631421e-04
+##  [6,]  2.235800e-05  3.959546e-04  1.810284e-05 -1.293340e-03
+##  [7,]  2.892262e-05  1.810284e-05  8.642906e-05 -8.482079e-05
+##  [8,]  2.631421e-04 -1.293340e-03 -8.482079e-05  1.519116e-01
+##  [9,] -7.379281e-06  3.626801e-05  2.378478e-06 -3.435042e-03
+##                [,9]
+##  [1,] -8.539200e-05
+##  [2,]  1.380483e-05
+##  [3,]  4.908143e-07
+##  [4,] -3.422572e-06
+##  [5,] -7.379281e-06
+##  [6,]  3.626801e-05
+##  [7,]  2.378478e-06
+##  [8,] -3.435042e-03
+##  [9,]  9.631711e-05
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model8 <-}\StringTok{ }\KeywordTok{model_predict}\NormalTok{(estimates_}\DecValTok{8}\NormalTok{[[}\StringTok{"theta"}\NormalTok{]], estimates_}\DecValTok{8}\NormalTok{[[}\StringTok{"formulas"}\NormalTok{]], estimates_}\DecValTok{8}\NormalTok{[[}\StringTok{"Sigma_theta"}\NormalTok{]],data_test,}\DataTypeTok{type=}\StringTok{"observation"}\NormalTok{)}
+
+
+\NormalTok{Score_}\DecValTok{8}\NormalTok{ =}\StringTok{ }\KeywordTok{model_scores}\NormalTok{(model8, data_test, }\StringTok{'Actual_Weight'}\NormalTok{, }\FloatTok{0.1}\NormalTok{)}
+
+\NormalTok{S8_S3 =}\StringTok{ }\NormalTok{Score_}\DecValTok{8} \OperatorTok{-}\StringTok{ }\NormalTok{Score_}\DecValTok{3}
+\NormalTok{S8_S5 =}\StringTok{ }\NormalTok{Score_}\DecValTok{8} \OperatorTok{-}\StringTok{ }\NormalTok{Score_}\DecValTok{5}
+
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S8_S3[[}\StringTok{"SES"}\NormalTok{]]),}
+      \DataTypeTok{xlim=}\KeywordTok{c}\NormalTok{(}\OperatorTok{-}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{),}
+      \DataTypeTok{xlab=}\StringTok{"Score Difference (Score 8 - Score 3)"}\NormalTok{,}
+      \DataTypeTok{ylab=}\StringTok{"% Test Data Set"}\NormalTok{,}
+      \DataTypeTok{main=}\StringTok{"ECDF of Difference between Scores of Model 8 and Model 3"}\NormalTok{,}
+      \DataTypeTok{col=}\StringTok{"red"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S8_S3[[}\StringTok{"DSS"}\NormalTok{]]),}
+     \DataTypeTok{col=}\StringTok{"blue"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S8_S3[[}\StringTok{"IS"}\NormalTok{]]),}
+     \DataTypeTok{col=}\StringTok{"black"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{v=}\DecValTok{0}\NormalTok{, }\DataTypeTok{col=}\StringTok{"magenta"}\NormalTok{)}
+\KeywordTok{legend}\NormalTok{(}\StringTok{'bottomright'}\NormalTok{, }
+       \DataTypeTok{legend=}\KeywordTok{c}\NormalTok{(}\StringTok{"Squared Error"}\NormalTok{,}\StringTok{"Dawid-Sebastiani"}\NormalTok{,}\StringTok{"Interval Score"}\NormalTok{),}
+       \DataTypeTok{col=}\KeywordTok{c}\NormalTok{(}\StringTok{"red"}\NormalTok{,}\StringTok{"blue"}\NormalTok{,}\StringTok{"black"}\NormalTok{),}
+       \DataTypeTok{pch=}\DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-10-1.pdf}
+
+\subsubsection{Comparing Model 8 and Model
+3}\label{comparing-model-8-and-model-3}
+
+The interval score for Model 8 is better than Model 3 on appoximately
+\textbf{75\%} of the test data set. The Dawid-Sebastiani score for Model
+8 is better than Model 3 on approximately \textbf{70\%} of the test data
+set. The Squared-Error score for Model 8 is better than Model 3 on
+approximately \textbf{40\%} of the test data set.
+
+Only the interval score and Dawid-Sebastiani score agree on Model 8
+being better than Model 3. The Squared-Error score suggest that Model 3
+is marginally better than Model 8.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S8_S5[[}\StringTok{"SES"}\NormalTok{]]),}
+      \DataTypeTok{xlim=}\KeywordTok{c}\NormalTok{(}\OperatorTok{-}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{),}
+      \DataTypeTok{xlab=}\StringTok{"Score Difference (Score 8 - Score 5)"}\NormalTok{,}
+      \DataTypeTok{ylab=}\StringTok{"% Test Data Set"}\NormalTok{,}
+      \DataTypeTok{main=}\StringTok{"ECDF of Difference between Scores of Model 8 and Model 5"}\NormalTok{,}
+      \DataTypeTok{col=}\StringTok{"red"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S8_S5[[}\StringTok{"DSS"}\NormalTok{]]),}
+     \DataTypeTok{col=}\StringTok{"blue"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(S8_S5[[}\StringTok{"IS"}\NormalTok{]]),}
+     \DataTypeTok{col=}\StringTok{"black"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{v=}\DecValTok{0}\NormalTok{, }\DataTypeTok{col=}\StringTok{"magenta"}\NormalTok{)}
+\KeywordTok{legend}\NormalTok{(}\StringTok{'bottomright'}\NormalTok{, }
+       \DataTypeTok{legend=}\KeywordTok{c}\NormalTok{(}\StringTok{"Squared Error"}\NormalTok{,}\StringTok{"Dawid-Sebastiani"}\NormalTok{,}\StringTok{"Interval Score"}\NormalTok{),}
+       \DataTypeTok{col=}\KeywordTok{c}\NormalTok{(}\StringTok{"red"}\NormalTok{,}\StringTok{"blue"}\NormalTok{,}\StringTok{"black"}\NormalTok{),}
+       \DataTypeTok{pch=}\DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-11-1.pdf}
+
+\subsubsection{Comparing Model 8 and Model
+5}\label{comparing-model-8-and-model-5}
+
+The interval score for Model 8 is better than Model 5 on appoximately
+\textbf{80\%} of the test data set. The Dawid-Sebastiani score for Model
+8 is better than Model 5 on approximately \textbf{50\%} of the test data
+set. The Squared-Error score for Model 8 is better than Model 5 on
+approximately \textbf{35\%} of the test data set.
+
+Only the interval score agrees on Model 8 being better than Model 5. The
+Dawid-Sebastiani score dow not give a conclusive indication on which
+model is better. The Squared-Error score suggest that Model 5 is better
+than Model 8.
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Task 9}\label{task-9}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Prob_}\DecValTok{3}\NormalTok{ =}\StringTok{ }\KeywordTok{pnorm}\NormalTok{(}\DataTypeTok{q=}\FloatTok{1.1}\OperatorTok{*}\NormalTok{data_test}\OperatorTok{$}\NormalTok{CAD_Weight,}\DataTypeTok{mean =}\NormalTok{ model3}\OperatorTok{$}\NormalTok{mu,}\DataTypeTok{sd =}\NormalTok{ model3}\OperatorTok{$}\NormalTok{sigma,}\DataTypeTok{lower.tail =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{Prob_}\DecValTok{5}\NormalTok{ =}\StringTok{ }\KeywordTok{pnorm}\NormalTok{(}\DataTypeTok{q=}\FloatTok{1.1}\OperatorTok{*}\NormalTok{data_test}\OperatorTok{$}\NormalTok{CAD_Weight,}\DataTypeTok{mean =}\NormalTok{ model5}\OperatorTok{$}\NormalTok{mu,}\DataTypeTok{sd =}\NormalTok{ model5}\OperatorTok{$}\NormalTok{sigma,}\DataTypeTok{lower.tail =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{Prob_}\DecValTok{8}\NormalTok{ =}\StringTok{ }\KeywordTok{pnorm}\NormalTok{(}\DataTypeTok{q=}\FloatTok{1.1}\OperatorTok{*}\NormalTok{data_test}\OperatorTok{$}\NormalTok{CAD_Weight,}\DataTypeTok{mean =}\NormalTok{ model8}\OperatorTok{$}\NormalTok{mu,}\DataTypeTok{sd =}\NormalTok{ model8}\OperatorTok{$}\NormalTok{sigma,}\DataTypeTok{lower.tail =} \OtherTok{FALSE}\NormalTok{)}
+
+\NormalTok{Prob_CAD=}\KeywordTok{cbind}\NormalTok{(Prob_}\DecValTok{3}\NormalTok{,Prob_}\DecValTok{5}\NormalTok{,Prob_}\DecValTok{8}\NormalTok{,data_test)}
+
+\KeywordTok{ggplot}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Prob_CAD,}\KeywordTok{aes}\NormalTok{(CAD_Weight,Prob_}\DecValTok{3}\NormalTok{, }\DataTypeTok{col =} \StringTok{"Model 3"}\NormalTok{ )) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Prob_CAD,}\KeywordTok{aes}\NormalTok{(CAD_Weight,Prob_}\DecValTok{5}\NormalTok{, }\DataTypeTok{col =} \StringTok{"Model 5"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Prob_CAD,}\KeywordTok{aes}\NormalTok{(CAD_Weight,Prob_}\DecValTok{3}\NormalTok{, }\DataTypeTok{col =} \StringTok{"Model 3"}\NormalTok{ )) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Prob_CAD,}\KeywordTok{aes}\NormalTok{(CAD_Weight,Prob_}\DecValTok{5}\NormalTok{, }\DataTypeTok{col =} \StringTok{"Model 5"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Prob_CAD,}\KeywordTok{aes}\NormalTok{(CAD_Weight,Prob_}\DecValTok{8}\NormalTok{, }\DataTypeTok{col =} \StringTok{"Model 8"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{subtitle=}\StringTok{"Event: More than 10% extra weight is needed compared with CAD_Weight"}\NormalTok{, }
+       \DataTypeTok{y=}\StringTok{"Probability"}\NormalTok{, }
+       \DataTypeTok{x=}\StringTok{"CAD_Weight"}\NormalTok{, }
+       \DataTypeTok{title=}\StringTok{"Probabilities for the Event for each Model"}\NormalTok{, }
+       \DataTypeTok{caption =} \StringTok{"Note: Probabilities for Model 8 shown as Scatter plot only"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-12-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{score_brier <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{ (z, probF)\{}
+\NormalTok{  (z }\OperatorTok{-}\StringTok{ }\NormalTok{probF)}\OperatorTok{^}\DecValTok{2}
+\NormalTok{\}}
+
+\CommentTok{# if Actual_Weight "<\textbackslash{}>" 1.1*CAD_Weight then z=1 otherwise z=0}
+\NormalTok{indicator<-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(data_test}\OperatorTok{$}\NormalTok{Actual_Weight}\OperatorTok{>}\NormalTok{data_test}\OperatorTok{$}\NormalTok{CAD_Weight}\OperatorTok{*}\FloatTok{1.1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)}
+
+\NormalTok{BS_}\DecValTok{3}\NormalTok{=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_brier}\NormalTok{(indicator,Prob_}\DecValTok{3}\NormalTok{)))}
+\NormalTok{BS_}\DecValTok{5}\NormalTok{=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_brier}\NormalTok{(indicator,Prob_}\DecValTok{5}\NormalTok{)))}
+\NormalTok{BS_}\DecValTok{8}\NormalTok{=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_brier}\NormalTok{(indicator,Prob_}\DecValTok{8}\NormalTok{)))}
+
+\NormalTok{df.brier=}\KeywordTok{data.frame}\NormalTok{(}\StringTok{"Brier Score for Model 3"}\NormalTok{=BS_}\DecValTok{3}\NormalTok{,}\StringTok{"Brier Score for Model 5"}\NormalTok{=BS_}\DecValTok{5}\NormalTok{,}\StringTok{"Brier Score for Model 8"}\NormalTok{=BS_}\DecValTok{8}\NormalTok{)}
+
+\NormalTok{B5_B3 =}\StringTok{ }\NormalTok{BS_}\DecValTok{5}\OperatorTok{-}\NormalTok{BS_}\DecValTok{3}
+\NormalTok{B8_B3 =}\StringTok{ }\NormalTok{BS_}\DecValTok{8}\OperatorTok{-}\NormalTok{BS_}\DecValTok{3}
+\NormalTok{B8_B5 =}\StringTok{ }\NormalTok{BS_}\DecValTok{8}\OperatorTok{-}\NormalTok{BS_}\DecValTok{5}
+
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(B8_B3),}
+     \CommentTok{#xlim=c(-8,5),}
+      \DataTypeTok{xlab=}\StringTok{"Score Difference (Score 8 - Score 3)"}\NormalTok{,}
+      \DataTypeTok{ylab=}\StringTok{"% Test Data Set"}\NormalTok{,}
+      \DataTypeTok{main=}\StringTok{"ECDF of Brier Score Difference between Model 8, 5 & 3"}\NormalTok{,}
+      \DataTypeTok{col=}\StringTok{"red"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(B5_B3),}
+     \DataTypeTok{col=}\StringTok{"blue"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(B8_B5),}
+     \DataTypeTok{col=}\StringTok{"black"}\NormalTok{,}\DataTypeTok{cex=}\DecValTok{0}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{v=}\DecValTok{0}\NormalTok{, }\DataTypeTok{col=}\StringTok{"magenta"}\NormalTok{)}
+\KeywordTok{legend}\NormalTok{(}\StringTok{'bottomright'}\NormalTok{, }
+       \DataTypeTok{legend=}\KeywordTok{c}\NormalTok{(}\StringTok{"Model 8 - Model 3"}\NormalTok{,}\StringTok{"Model 5 - Model 3"}\NormalTok{,}\StringTok{"Model 8 - Model 5"}\NormalTok{),}
+       \DataTypeTok{col=}\KeywordTok{c}\NormalTok{(}\StringTok{"red"}\NormalTok{,}\StringTok{"blue"}\NormalTok{,}\StringTok{"black"}\NormalTok{),}
+       \DataTypeTok{pch=}\DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-12-2.pdf}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Task 10}\label{task-10}
 
 
 \end{document}
