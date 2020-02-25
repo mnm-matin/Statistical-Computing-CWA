@@ -24,7 +24,8 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
 \hypersetup{unicode=true,
-            pdftitle={CWA},
+            pdftitle={Statistical Computing CW A},
+            pdfauthor={Matin Mahmood (s1841215)},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
@@ -113,24 +114,27 @@
 
 \setlength{\droptitle}{-2em}
 
-  \title{CWA}
+  \title{Statistical Computing CW A}
     \pretitle{\vspace{\droptitle}\centering\huge}
   \posttitle{\par}
-    \author{}
-    \preauthor{}\postauthor{}
-    \date{}
-    \predate{}\postdate{}
-  
+    \author{Matin Mahmood (s1841215)}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{25 February 2020}
+
 
 \begin{document}
 \maketitle
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\CommentTok{#Given in Coursework Document}
 \KeywordTok{source}\NormalTok{(}\StringTok{"CWA2020code.R"}\NormalTok{)}
 \KeywordTok{suppressPackageStartupMessages}\NormalTok{(}\KeywordTok{library}\NormalTok{(tidyverse))}
 \KeywordTok{theme_set}\NormalTok{(}\KeywordTok{theme_bw}\NormalTok{())}
-\NormalTok{filament <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"filament.csv"}\NormalTok{, }\DataTypeTok{stringsAsFactors =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{filament <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"filament.csv"}\NormalTok{, }\DataTypeTok{stringsAsFactors =} \OtherTok{FALSE}\NormalTok{) }
 \end{Highlighting}
 \end{Shaded}
 
@@ -193,7 +197,7 @@ Function}\label{task-2-model-estimate-function}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{data_obs <-}\StringTok{ }\NormalTok{filament[filament}\OperatorTok{$}\NormalTok{Class}\OperatorTok{==}\StringTok{"obs"}\NormalTok{,]}
+\NormalTok{data_obs <-}\StringTok{ }\NormalTok{filament[filament}\OperatorTok{$}\NormalTok{Class}\OperatorTok{==}\StringTok{"obs"}\NormalTok{,] }\CommentTok{#Extract Observed Data}
 
 \NormalTok{formulas_}\DecValTok{3}\NormalTok{ <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{E =} \OperatorTok{~}\StringTok{ }\DecValTok{1} \OperatorTok{+}\StringTok{ }\NormalTok{CAD_Weight, }\DataTypeTok{V =} \OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{)}
 
@@ -229,7 +233,7 @@ Plot}\label{task-4-model-3-prediction-intervals-plot}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{data_test <-}\StringTok{ }\NormalTok{filament[filament}\OperatorTok{$}\NormalTok{Class}\OperatorTok{==}\StringTok{"test"}\NormalTok{,]}
+\NormalTok{data_test <-}\StringTok{ }\NormalTok{filament[filament}\OperatorTok{$}\NormalTok{Class}\OperatorTok{==}\StringTok{"test"}\NormalTok{,] }\CommentTok{#Extract Test Data}
 
 \NormalTok{model3 <-}\StringTok{ }\KeywordTok{model_predict}\NormalTok{(estimates_}\DecValTok{3}\NormalTok{[[}\StringTok{"theta"}\NormalTok{]], estimates_}\DecValTok{3}\NormalTok{[[}\StringTok{"formulas"}\NormalTok{]], estimates_}\DecValTok{3}\NormalTok{[[}\StringTok{"Sigma_theta"}\NormalTok{]],data_test,}\DataTypeTok{type=}\StringTok{"observation"}\NormalTok{)}
 
@@ -518,6 +522,7 @@ than Model 8.
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\CommentTok{#Estimating Probability Distributions}
 \NormalTok{Prob_}\DecValTok{3}\NormalTok{ =}\StringTok{ }\KeywordTok{pnorm}\NormalTok{(}\DataTypeTok{q=}\FloatTok{1.1}\OperatorTok{*}\NormalTok{data_test}\OperatorTok{$}\NormalTok{CAD_Weight,}\DataTypeTok{mean =}\NormalTok{ model3}\OperatorTok{$}\NormalTok{mu,}\DataTypeTok{sd =}\NormalTok{ model3}\OperatorTok{$}\NormalTok{sigma,}\DataTypeTok{lower.tail =} \OtherTok{FALSE}\NormalTok{)}
 \NormalTok{Prob_}\DecValTok{5}\NormalTok{ =}\StringTok{ }\KeywordTok{pnorm}\NormalTok{(}\DataTypeTok{q=}\FloatTok{1.1}\OperatorTok{*}\NormalTok{data_test}\OperatorTok{$}\NormalTok{CAD_Weight,}\DataTypeTok{mean =}\NormalTok{ model5}\OperatorTok{$}\NormalTok{mu,}\DataTypeTok{sd =}\NormalTok{ model5}\OperatorTok{$}\NormalTok{sigma,}\DataTypeTok{lower.tail =} \OtherTok{FALSE}\NormalTok{)}
 \NormalTok{Prob_}\DecValTok{8}\NormalTok{ =}\StringTok{ }\KeywordTok{pnorm}\NormalTok{(}\DataTypeTok{q=}\FloatTok{1.1}\OperatorTok{*}\NormalTok{data_test}\OperatorTok{$}\NormalTok{CAD_Weight,}\DataTypeTok{mean =}\NormalTok{ model8}\OperatorTok{$}\NormalTok{mu,}\DataTypeTok{sd =}\NormalTok{ model8}\OperatorTok{$}\NormalTok{sigma,}\DataTypeTok{lower.tail =} \OtherTok{FALSE}\NormalTok{)}
@@ -542,11 +547,12 @@ than Model 8.
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\CommentTok{#Brier Score Function}
 \NormalTok{score_brier <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{ (z, probF)\{}
 \NormalTok{  (z }\OperatorTok{-}\StringTok{ }\NormalTok{probF)}\OperatorTok{^}\DecValTok{2}
 \NormalTok{\}}
 
-\CommentTok{# if Actual_Weight "<\textbackslash{}>" 1.1*CAD_Weight then z=1 otherwise z=0}
+\CommentTok{# if Actual_Weight < 1.1*CAD_Weight then z=1 otherwise z=0}
 \NormalTok{indicator<-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(data_test}\OperatorTok{$}\NormalTok{Actual_Weight}\OperatorTok{>}\NormalTok{data_test}\OperatorTok{$}\NormalTok{CAD_Weight}\OperatorTok{*}\FloatTok{1.1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)}
 
 \NormalTok{BS_}\DecValTok{3}\NormalTok{=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_brier}\NormalTok{(indicator,Prob_}\DecValTok{3}\NormalTok{)))}
@@ -560,7 +566,7 @@ than Model 8.
 \NormalTok{B8_B5 =}\StringTok{ }\NormalTok{BS_}\DecValTok{8}\OperatorTok{-}\NormalTok{BS_}\DecValTok{5}
 
 \KeywordTok{plot}\NormalTok{(}\KeywordTok{ecdf}\NormalTok{(B8_B3),}
-     \CommentTok{#xlim=c(-8,5),}
+     \DataTypeTok{xlim=}\KeywordTok{c}\NormalTok{(}\OperatorTok{-}\FloatTok{0.2}\NormalTok{,}\FloatTok{0.2}\NormalTok{),}
       \DataTypeTok{xlab=}\StringTok{"Score Difference (Score 8 - Score 3)"}\NormalTok{,}
       \DataTypeTok{ylab=}\StringTok{"% Test Data Set"}\NormalTok{,}
       \DataTypeTok{main=}\StringTok{"ECDF of Brier Score Difference between Model 8, 5 & 3"}\NormalTok{,}
@@ -579,9 +585,172 @@ than Model 8.
 
 \includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-12-2.pdf}
 
+\subsubsection{Comparing Model 8, Model 5 \& Model
+3}\label{comparing-model-8-model-5-model-3}
+
+The Brier score for Model 8 is better than Model 5 on appoximately
+\textbf{50\%} of the test data set. The Brier score for Model 8 is
+better than Model 3 on approximately \textbf{45\%} of the test data set.
+The Brier score for Model 5 is better than Model 3 on approximately
+\textbf{40\%} of the test data set.
+
+The Brier score does not give a conclusive indication on which model is
+better.
+
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
 \section{Task 10}\label{task-10}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#set.seed(pi) #for reproducability}
+
+\CommentTok{# Generating observed data}
+\NormalTok{c_}\DecValTok{5}\NormalTok{=}\KeywordTok{rcauchy}\NormalTok{(}\DecValTok{5}\NormalTok{,}\DataTypeTok{location=}\DecValTok{2}\NormalTok{,}\DataTypeTok{scale=}\DecValTok{5}\NormalTok{)}
+\NormalTok{c_}\DecValTok{10}\NormalTok{=}\KeywordTok{rcauchy}\NormalTok{(}\DecValTok{10}\NormalTok{,}\DataTypeTok{location=}\DecValTok{2}\NormalTok{,}\DataTypeTok{scale=}\DecValTok{5}\NormalTok{)}
+\NormalTok{c_}\DecValTok{20}\NormalTok{=}\KeywordTok{rcauchy}\NormalTok{(}\DecValTok{20}\NormalTok{,}\DataTypeTok{location=}\DecValTok{2}\NormalTok{,}\DataTypeTok{scale=}\DecValTok{5}\NormalTok{)}
+\NormalTok{c_}\DecValTok{40}\NormalTok{=}\KeywordTok{rcauchy}\NormalTok{(}\DecValTok{40}\NormalTok{,}\DataTypeTok{location=}\DecValTok{2}\NormalTok{,}\DataTypeTok{scale=}\DecValTok{5}\NormalTok{)}
+
+\CommentTok{# Generating test data}
+\NormalTok{c_test=}\KeywordTok{rcauchy}\NormalTok{(}\DecValTok{100000}\NormalTok{,}\DataTypeTok{location=}\DecValTok{2}\NormalTok{,}\DataTypeTok{scale=}\DecValTok{5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{neg_lik_cauchy <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(theta, y) \{}
+  \OperatorTok{-}\KeywordTok{sum}\NormalTok{(}\KeywordTok{dcauchy}\NormalTok{(}
+\NormalTok{    y, }
+    \DataTypeTok{location =}\NormalTok{ theta[}\DecValTok{1}\NormalTok{],}
+    \DataTypeTok{scale =} \KeywordTok{exp}\NormalTok{(theta[}\DecValTok{2}\NormalTok{])}\OperatorTok{^}\FloatTok{0.5}\NormalTok{, }\CommentTok{#transforming scale}
+    \DataTypeTok{log =} \OtherTok{TRUE}\NormalTok{))}
+\NormalTok{\}}
+
+
+\NormalTok{opt_cauchy <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{ (C_N)\{}
+\NormalTok{  opt_c <-}\StringTok{ }\KeywordTok{optim}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{),}
+              \DataTypeTok{fn =}\NormalTok{ neg_lik_cauchy,}
+              \DataTypeTok{y =}\NormalTok{ C_N,}
+              \DataTypeTok{method =} \StringTok{"BFGS"}\NormalTok{,}
+              \DataTypeTok{control =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{maxit =} \DecValTok{5000}\NormalTok{), }\CommentTok{# Anouncement on Learn, Ensures Convergence}
+              \DataTypeTok{hessian =} \OtherTok{TRUE}\NormalTok{)}
+  
+\NormalTok{  location_e <-}\StringTok{ }\NormalTok{opt_c}\OperatorTok{$}\NormalTok{par[}\DecValTok{1}\NormalTok{]}
+\NormalTok{  scale_e <-}\StringTok{ }\NormalTok{opt_c}\OperatorTok{$}\NormalTok{par[}\DecValTok{2}\NormalTok{]}
+  
+  \KeywordTok{return}\NormalTok{ (}\KeywordTok{list}\NormalTok{(}\DataTypeTok{location_e=}\NormalTok{location_e,}\DataTypeTok{scale_e=}\NormalTok{scale_e, }\DataTypeTok{convergence=}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{convergence))}
+\NormalTok{\}}
+
+\NormalTok{brier_cauchy <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{ (C_N)\{}
+\NormalTok{  opt_c <-}\StringTok{ }\KeywordTok{opt_cauchy}\NormalTok{(C_N)}
+  
+  \CommentTok{#Estimated Probability Distribution}
+\NormalTok{  prob_dist_e <-}\StringTok{ }\KeywordTok{pcauchy}\NormalTok{(}\DataTypeTok{q=}\DecValTok{0}\NormalTok{,}\DataTypeTok{location =}\NormalTok{ opt_c}\OperatorTok{$}\NormalTok{location_e, }\DataTypeTok{scale=}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{scale_e,}\DataTypeTok{lower.tail =} \OtherTok{TRUE}\NormalTok{)}
+  \CommentTok{#True Probability Distribution}
+\NormalTok{  prob_dist_true =}\StringTok{ }\KeywordTok{pcauchy}\NormalTok{(}\DataTypeTok{q=}\DecValTok{0}\NormalTok{,}\DataTypeTok{location =} \DecValTok{2}\NormalTok{, }\DataTypeTok{scale=}\DecValTok{5}\NormalTok{,}\DataTypeTok{lower.tail =} \OtherTok{TRUE}\NormalTok{) }
+  
+  
+\NormalTok{  indicator_e<-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(c_test}\OperatorTok{<}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{) }\CommentTok{#if y<0 then 1 else 0}
+\NormalTok{  indicator_true<-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(C_N}\OperatorTok{<}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)}
+  
+\NormalTok{  BS_10_e=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_brier}\NormalTok{(indicator_e,prob_dist_e))) }\CommentTok{#using  score_brier from Task 9}
+\NormalTok{  BS_10_true=}\KeywordTok{c}\NormalTok{((}\KeywordTok{score_brier}\NormalTok{(indicator_true,prob_dist_true))) }
+  
+\NormalTok{  mean_BS_10_e=}\KeywordTok{mean}\NormalTok{(BS_10_e) }\CommentTok{#Estimated Mean Brier Score}
+\NormalTok{  mean_BS_10_true=}\KeywordTok{mean}\NormalTok{(BS_10_true) }\CommentTok{#True Mean Brier Score}
+  
+\NormalTok{  mean_bs_d=mean_BS_10_e }\OperatorTok{-}\StringTok{ }\NormalTok{mean_BS_10_true }\CommentTok{#Difference between scores (Estimated - True)}
+
+  \KeywordTok{return}\NormalTok{(}\KeywordTok{list}\NormalTok{(}\DataTypeTok{mean_bs_e=}\NormalTok{mean_BS_10_e, }\DataTypeTok{mean_bs_true=}\NormalTok{mean_BS_10_true, }\DataTypeTok{mean_d=}\NormalTok{mean_bs_d,}\DataTypeTok{opt_c=}\NormalTok{opt_c))}
+\NormalTok{\}}
+
+
+\NormalTok{b_}\DecValTok{5}\NormalTok{=}\KeywordTok{brier_cauchy}\NormalTok{(c_}\DecValTok{5}\NormalTok{)}
+\NormalTok{b_}\DecValTok{10}\NormalTok{=}\KeywordTok{brier_cauchy}\NormalTok{(c_}\DecValTok{10}\NormalTok{)}
+\NormalTok{b_}\DecValTok{20}\NormalTok{=}\KeywordTok{brier_cauchy}\NormalTok{(c_}\DecValTok{20}\NormalTok{)}
+\NormalTok{b_}\DecValTok{40}\NormalTok{=}\KeywordTok{brier_cauchy}\NormalTok{(c_}\DecValTok{40}\NormalTok{)}
+
+\NormalTok{mbs_n=}\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{mean_d=}\KeywordTok{c}\NormalTok{(b_}\DecValTok{5}\OperatorTok{$}\NormalTok{mean_d,b_}\DecValTok{10}\OperatorTok{$}\NormalTok{mean_d,b_}\DecValTok{20}\OperatorTok{$}\NormalTok{mean_d,b_}\DecValTok{40}\OperatorTok{$}\NormalTok{mean_d),}\DataTypeTok{N=}\KeywordTok{c}\NormalTok{(}\DecValTok{5}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{20}\NormalTok{,}\DecValTok{40}\NormalTok{)))}
+
+\KeywordTok{ggplot}\NormalTok{()}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data=}\NormalTok{mbs_n,}\KeywordTok{aes}\NormalTok{(N,mean_d))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data=}\NormalTok{mbs_n,}\KeywordTok{aes}\NormalTok{(N,mean_d))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_hline}\NormalTok{(}\DataTypeTok{yintercept =} \DecValTok{0}\NormalTok{, }\DataTypeTok{col=}\StringTok{"red"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{y=}\StringTok{"Mean Brier Score Difference "}\NormalTok{, }
+       \DataTypeTok{x=}\StringTok{"Number of Observations"}\NormalTok{, }
+       \DataTypeTok{title=}\StringTok{"Mean Brier Score Difference Stability"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+\subsubsection{Stabilisation of Mean Brier Score
+Differences}\label{stabilisation-of-mean-brier-score-differences}
+
+The mean Brier Score difference stabilise as N increases. The difference
+approaches 0 as N increases.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{param_n=}\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{opt_par_l=}\KeywordTok{c}\NormalTok{(b_}\DecValTok{5}\OperatorTok{$}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{location_e,b_}\DecValTok{10}\OperatorTok{$}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{location_e,b_}\DecValTok{20}\OperatorTok{$}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{location_e,b_}\DecValTok{40}\OperatorTok{$}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{location_e),}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{opt_par_s=}\KeywordTok{c}\NormalTok{(b_}\DecValTok{5}\OperatorTok{$}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{scale_e,b_}\DecValTok{10}\OperatorTok{$}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{scale_e,b_}\DecValTok{20}\OperatorTok{$}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{scale_e,b_}\DecValTok{40}\OperatorTok{$}\NormalTok{opt_c}\OperatorTok{$}\NormalTok{scale_e),}\DataTypeTok{N=}\KeywordTok{c}\NormalTok{(}\DecValTok{5}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{20}\NormalTok{,}\DecValTok{40}\NormalTok{))))}
+
+\KeywordTok{ggplot}\NormalTok{()}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data=}\NormalTok{param_n,}\KeywordTok{aes}\NormalTok{(N,opt_par_l,}\DataTypeTok{col=}\StringTok{"Location"}\NormalTok{))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data=}\NormalTok{param_n,}\KeywordTok{aes}\NormalTok{(N,opt_par_s,}\DataTypeTok{col=}\StringTok{"Scale"}\NormalTok{))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_hline}\NormalTok{(}\DataTypeTok{yintercept =} \DecValTok{2}\NormalTok{, }\DataTypeTok{col=}\StringTok{"red"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_hline}\NormalTok{(}\DataTypeTok{yintercept =} \DecValTok{5}\NormalTok{, }\DataTypeTok{col=}\StringTok{"turquoise"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{y=}\StringTok{""}\NormalTok{, }
+       \DataTypeTok{x=}\StringTok{"Number of Observations"}\NormalTok{, }
+       \DataTypeTok{title=}\StringTok{"Location & Scale against N"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CWAKnit_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+\subsubsection{Stabilisation of Optimization
+Paramaters}\label{stabilisation-of-optimization-paramaters}
+
+The optimization paramaters stabilise as N increases. They approach
+their respective true values as N increases.
+
+\subsubsection{Similar Comparison for Squared Error and Dawid Sebastiani
+Score}\label{similar-comparison-for-squared-error-and-dawid-sebastiani-score}
+
+The squared error and dawid sebastiani scores will also stabalise as
+using a larger N results in better estimation of mu and sigma. Better
+estimates of mu and sigma result in better scores for squared error and
+dawid sebastiani.
+
+Also since, \[ {p_{F}=\mathrm{E}_{F}(z)} \] If the Brier Score
+stabalises then so will squared error score.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Attempted Task 10 to run 25 times and then average}
+
+
+\CommentTok{# run = function (rn)\{}
+\CommentTok{#   Num <- c(5,10,20,40)}
+\CommentTok{#   }
+\CommentTok{#   for (n in Num) \{}
+\CommentTok{#     sum_n=0 }
+\CommentTok{#     sum_l=0 }
+\CommentTok{#     sum_s=0 }
+\CommentTok{#     count=0}
+\CommentTok{#     for (i in 1:rn) \{}
+\CommentTok{#       c_n=rcauchy(n,location=2,scale=5)}
+\CommentTok{#       b_n=brier_cauchy(c_n)}
+\CommentTok{#       sum_n=sum_n+b_n$mean_d}
+\CommentTok{#       sum_l=sum_l+b_n$opt_c$location_e}
+\CommentTok{#       sum_s=sum_s+b_n$opt_c$scale_e}
+\CommentTok{#       count=count+1}
+\CommentTok{#   \}}
+\CommentTok{#   print(c(sum_n/count,sum_l/count,sum_s/count))}
+\CommentTok{#   \}}
+\CommentTok{# \}}
+\CommentTok{# run(25)}
+\end{Highlighting}
+\end{Shaded}
 
 
 \end{document}

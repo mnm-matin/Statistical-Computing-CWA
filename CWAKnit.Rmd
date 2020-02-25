@@ -1,5 +1,7 @@
 ---
-title: "CWA"
+title: "Statistical Computing CW A"
+author: "Matin Mahmood (s1841215)"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output: pdf_document
 ---
 
@@ -8,10 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+#Given in Coursework Document
 source("CWA2020code.R")
 suppressPackageStartupMessages(library(tidyverse))
 theme_set(theme_bw())
-filament <- read.csv("filament.csv", stringsAsFactors = FALSE)
+filament <- read.csv("filament.csv", stringsAsFactors = FALSE) 
 ```
 
 # Task 1: Actual Weight and CAD Weight Plot
@@ -65,7 +68,7 @@ model_estimate <- function(formulas, data, response){
 # Task 3: Estimating Model 3
 
 ```{r}
-data_obs <- filament[filament$Class=="obs",]
+data_obs <- filament[filament$Class=="obs",] #Extract Observed Data
 
 formulas_3 <- list(E = ~ 1 + CAD_Weight, V = ~ 1)
 
@@ -81,7 +84,7 @@ estimates_3
 
 ```{r}
 
-data_test <- filament[filament$Class=="test",]
+data_test <- filament[filament$Class=="test",] #Extract Test Data
 
 model3 <- model_predict(estimates_3[["theta"]], estimates_3[["formulas"]], estimates_3[["Sigma_theta"]],data_test,type="observation")
 
@@ -112,7 +115,6 @@ formulas_5 <- list(E = ~ 1 + CAD_Weight, V = ~ 1+ CAD_Weight)
 estimates_5 <- model_estimate(formulas_5, data_obs, "Actual_Weight")
 
 estimates_5
-
 ```
 
 ---
@@ -277,7 +279,7 @@ The Squared-Error score suggest that Model 5 is better than Model 8.
 # Task 9
 
 ```{r}
-
+#Estimating Probability Distributions
 Prob_3 = pnorm(q=1.1*data_test$CAD_Weight,mean = model3$mu,sd = model3$sigma,lower.tail = FALSE)
 Prob_5 = pnorm(q=1.1*data_test$CAD_Weight,mean = model5$mu,sd = model5$sigma,lower.tail = FALSE)
 Prob_8 = pnorm(q=1.1*data_test$CAD_Weight,mean = model8$mu,sd = model8$sigma,lower.tail = FALSE)
@@ -296,12 +298,12 @@ ggplot() +
        title="Probabilities for the Event for each Model", 
        caption = "Note: Probabilities for Model 8 shown as Scatter plot only")
   
-
+#Brier Score Function
 score_brier <- function (z, probF){
   (z - probF)^2
 }
 
-# if Actual_Weight "<\>" 1.1*CAD_Weight then z=1 otherwise z=0
+# if Actual_Weight < 1.1*CAD_Weight then z=1 otherwise z=0
 indicator<- ifelse(data_test$Actual_Weight>data_test$CAD_Weight*1.1,1,0)
 
 BS_3=c((score_brier(indicator,Prob_3)))
@@ -364,15 +366,15 @@ neg_lik_cauchy <- function(theta, y) {
   -sum(dcauchy(
     y, 
     location = theta[1],
-    scale = exp(theta[2])^0.5, #scaling theta
+    scale = exp(theta[2])^0.5, #transforming scale
     log = TRUE))
 }
 
 
-opt_cauchy <- function (N){
-  opt_c <- optim(c(0,1),
+opt_cauchy <- function (C_N){
+  opt_c <- optim(c(0,0),
               fn = neg_lik_cauchy,
-              y = N,
+              y = C_N,
               method = "BFGS",
               control = list(maxit = 5000), # Anouncement on Learn, Ensures Convergence
               hessian = TRUE)
@@ -383,24 +385,25 @@ opt_cauchy <- function (N){
   return (list(location_e=location_e,scale_e=scale_e, convergence=opt_c$convergence))
 }
 
-brier_cauchy <- function (N){
-  opt_c <- opt_cauchy(N)
-  #opt_c
+brier_cauchy <- function (C_N){
+  opt_c <- opt_cauchy(C_N)
   
+  #Estimated Probability Distribution
   prob_dist_e <- pcauchy(q=0,location = opt_c$location_e, scale=opt_c$scale_e,lower.tail = TRUE)
-  prob_dist_true = pcauchy(q=0,location = 2, scale=5,lower.tail = TRUE)
+  #True Probability Distribution
+  prob_dist_true = pcauchy(q=0,location = 2, scale=5,lower.tail = TRUE) 
   
   
-  indicator_e<- ifelse(c_test<0,1,0)
-  indicator_true<- ifelse(N<0,1,0)
+  indicator_e<- ifelse(c_test<0,1,0) #if y<0 then 1 else 0
+  indicator_true<- ifelse(C_N<0,1,0)
   
-  BS_10_e=c((score_brier(indicator_e,prob_dist_e)))
-  BS_10_true=c((score_brier(indicator_true,prob_dist_true)))
+  BS_10_e=c((score_brier(indicator_e,prob_dist_e))) #using  score_brier from Task 9
+  BS_10_true=c((score_brier(indicator_true,prob_dist_true))) 
   
-  mean_BS_10_e=mean(BS_10_e)
-  mean_BS_10_true=mean(BS_10_true)
+  mean_BS_10_e=mean(BS_10_e) #Estimated Mean Brier Score
+  mean_BS_10_true=mean(BS_10_true) #True Mean Brier Score
   
-  mean_bs_d=mean_BS_10_e - mean_BS_10_true
+  mean_bs_d=mean_BS_10_e - mean_BS_10_true #Difference between scores (Estimated - True)
 
   return(list(mean_bs_e=mean_BS_10_e, mean_bs_true=mean_BS_10_true, mean_d=mean_bs_d,opt_c=opt_c))
 }
@@ -423,7 +426,7 @@ ggplot()+
 
 ```
 
-### Stabilization of Mean Brier Score Differences
+### Stabilisation of Mean Brier Score Differences
 
 The mean Brier Score difference stabilise as N increases. The difference approaches 0 as N increases.
 
@@ -440,8 +443,45 @@ ggplot()+
        title="Location & Scale against N")
 ```
 
-### Stabilization of Optimization Paramaters
+### Stabilisation of Optimization Paramaters
 
 The optimization paramaters stabilise as N increases. 
 They approach their respective true values as N increases.
+
+
+### Similar Comparison for Squared Error and Dawid Sebastiani Score
+
+
+The squared error and dawid sebastiani scores will also stabalise as using a larger N results in better estimation of mu and sigma. Better estimates of mu and sigma result in better scores for squared error and dawid sebastiani.
+
+Also since,
+$$ {p_{F}=\mathrm{E}_{F}(z)} $$
+If the Brier Score stabalises then so will squared error score.
+
+
+```{r}
+# Attempted Task 10 to run 25 times and then average
+
+
+# run = function (rn){
+#   Num <- c(5,10,20,40)
+#   
+#   for (n in Num) {
+#     sum_n=0 
+#     sum_l=0 
+#     sum_s=0 
+#     count=0
+#     for (i in 1:rn) {
+#       c_n=rcauchy(n,location=2,scale=5)
+#       b_n=brier_cauchy(c_n)
+#       sum_n=sum_n+b_n$mean_d
+#       sum_l=sum_l+b_n$opt_c$location_e
+#       sum_s=sum_s+b_n$opt_c$scale_e
+#       count=count+1
+#   }
+#   print(c(sum_n/count,sum_l/count,sum_s/count))
+#   }
+# }
+# run(25)
+```
 
