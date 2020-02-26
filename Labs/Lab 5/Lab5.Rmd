@@ -1,0 +1,64 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+library(xtable)
+library(microbenchmark)
+```
+
+```{r}
+vec_norm <- function(x) {
+  sum(x^2)^0.5
+}
+```
+
+```{r}
+n <- 100000
+m <- 100
+b <- rnorm(n)
+A <- matrix(rnorm(n * m), n, m)
+```
+
+```{r}
+At_b <- t(A) %*% b
+bA_t <- t(b %*% A)
+vec_norm(At_b - bA_t)
+
+results="asis"
+
+bm <- microbenchmark(t(A) %*% b, t(b %*% A), t(t(b) %*% A))
+print(xtable(summary(bm),
+caption = paste("Unit:",
+  attr(summary(bm), "unit"))))
+
+#wrapper
+microbenchmark_table <- function(bm) {
+  print(xtable(summary(bm),
+  caption = paste("Unit:",
+  attr(summary(bm), "unit"))))
+}
+```
+
+```{r}
+m <- 2000
+n <- 2000
+p <- 2000
+A <- matrix(rnorm(m * n), m, n)
+B <- matrix(rnorm(n * p), n, p)
+b <- rnorm(p)
+
+bm <- microbenchmark(ABb1 <- A %*% B %*% b,
+  ABb2 <- (A %*% B) %*% b,
+  ABb3 <- A %*% (B %*% b),
+  times = 1)
+microbenchmark_table(bm)
+
+``
+
