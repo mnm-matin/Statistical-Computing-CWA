@@ -1,4 +1,0 @@
-"0","## lm manages to estimate the regression:"
-"0","mod1 <- lm(y ~ x + I(x^2), data = data)"
-"0","## Add the fitted curve:"
-"0","pl + geom_line(aes(x, fitted(mod1)))"

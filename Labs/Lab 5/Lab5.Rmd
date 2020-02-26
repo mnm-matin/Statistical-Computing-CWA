@@ -58,7 +58,70 @@ bm <- microbenchmark(ABb1 <- A %*% B %*% b,
   ABb2 <- (A %*% B) %*% b,
   ABb3 <- A %*% (B %*% b),
   times = 1)
+
+microbenchmark_table(bm)
+```
+```{r}
+print(xtable(
+  cbind(Difference =
+    c("|1-2|" = vec_norm(ABb1 - ABb2),
+      "|1-3|" = vec_norm(ABb1 - ABb3),
+      "|2-3|" = vec_norm(ABb2 - ABb3)),
+    DifferenceRelEps =
+      c("|1-2|" = vec_norm(ABb1 - ABb2),
+        "|1-3|" = vec_norm(ABb1 - ABb3),
+        "|2-3|" = vec_norm(ABb2 - ABb3)) / .Machine$double.eps),
+  digits = c(0, -2, 1) # See ?xtable for explanation.
+))
+```
+
+
+```{r}
+
+bm <- microbenchmark(
+  A_1b <- solve(A) %*% b,
+  Au_b <- solve(A, b),
+  times = 1)
+
 microbenchmark_table(bm)
 
-``
+```
+
+
+```{r}
+## Set the "seed" for the random number sequences, so we can
+## reproduce exactly the same random numbers every time we run the code
+set.seed(1)
+## Simulate the data
+# x: 100 random numbers between 100 and 101
+data <- data.frame(x = 100 + sort(runif(100)))
+# y: random variation around a quadratic function:
+data <- data %>%
+  mutate(y = (x - 100.5) / 5 + (x - 100.5)^2 + rnorm(n(), sd = 0.1))
+```
+
+```{r}
+ggplot(data) + geom_point(aes(x, y))
+```
+
+```{r}
+
+beta_true <- c(10080.15, -200.8,1)
+
+data <- data %>%
+mutate(mu_true = beta_true[1] + beta_true[2] * x + beta_true[3] * x^2)
+
+pl <- ggplot(data) +
+  geom_point(aes(x, y)) +
+  geom_line(aes(x, mu_true), col ="red")
+
+pl
+```
+
+```{r}
+## lm manages to estimate the regression:
+mod1 <- lm(y ~ x + I(x^2), data = data)
+## Add the fitted curve:
+pl + geom_line(aes(x, fitted(mod1)))
+```
 

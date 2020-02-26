@@ -1,0 +1,26 @@
+"0","print(xtable("
+"0","  cbind(Difference ="
+"0","    c(""|1-2|"" = vec_norm(ABb1 - ABb2),"
+"0","      ""|1-3|"" = vec_norm(ABb1 - ABb3),"
+"0","      ""|2-3|"" = vec_norm(ABb2 - ABb3)),"
+"0","    DifferenceRelEps ="
+"0","      c(""|1-2|"" = vec_norm(ABb1 - ABb2),"
+"0","        ""|1-3|"" = vec_norm(ABb1 - ABb3),"
+"0","        ""|2-3|"" = vec_norm(ABb2 - ABb3)) / .Machine$double.eps),"
+"0","  digits = c(0, -2, 1) # See ?xtable for explanation."
+"0","))"
+"1","% latex table generated in R 3.5.1 by xtable 1.8-3 package
+% Wed Feb 26 09:34:52 2020
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & Difference & DifferenceRelEps \\ 
+  \hline
+$|$1-2$|$ & 0.00E+00 & 0.0 \\ 
+  $|$1-3$|$ & 2.64E-10 & 1189996.8 \\ 
+  $|$2-3$|$ & 2.64E-10 & 1189996.8 \\ 
+   \hline
+\end{tabular}
+\end{table}
+"

@@ -1,0 +1,27 @@
+"0","m <- 2000"
+"0","n <- 2000"
+"0","p <- 2000"
+"0","A <- matrix(rnorm(m * n), m, n)"
+"0","B <- matrix(rnorm(n * p), n, p)"
+"0","b <- rnorm(p)"
+"0","bm <- microbenchmark(ABb1 <- A %*% B %*% b,"
+"0","  ABb2 <- (A %*% B) %*% b,"
+"0","  ABb3 <- A %*% (B %*% b),"
+"0","  times = 1)"
+"0","microbenchmark_table(bm)"
+"1","% latex table generated in R 3.5.1 by xtable 1.8-3 package
+% Wed Feb 26 09:33:21 2020
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlrrrrrrr}
+  \hline
+ & expr & min & lq & mean & median & uq & max & neval \\ 
+  \hline
+1 & ABb1 $<$- A \%*\% B \%*\% b & 4145.85 & 4145.85 & 4145.85 & 4145.85 & 4145.85 & 4145.85 & 1.00 \\ 
+  2 & ABb2 $<$- (A \%*\% B) \%*\% b & 4087.79 & 4087.79 & 4087.79 & 4087.79 & 4087.79 & 4087.79 & 1.00 \\ 
+  3 & ABb3 $<$- A \%*\% (B \%*\% b) & 12.27 & 12.27 & 12.27 & 12.27 & 12.27 & 12.27 & 1.00 \\ 
+   \hline
+\end{tabular}
+\caption{Unit: milliseconds} 
+\end{table}
+"
